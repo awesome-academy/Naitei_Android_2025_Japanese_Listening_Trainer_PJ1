@@ -1,4 +1,4 @@
-package com.sun.japaneselisteningtrainer.data.model.folder
+package com.sun.japaneselisteningtrainer.data.repository.mock
 
 import com.sun.japaneselisteningtrainer.data.folder.FolderRepository
 import com.sun.japaneselisteningtrainer.data.model.Folder
