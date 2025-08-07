@@ -50,7 +50,7 @@ fun AudioEntryScreen(
         ) {
             TextField(
                 value = title,
-                onValueChange = { title= it },
+                onValueChange = { title = it },
                 label = { Text("Input A New Audio") }
             )
             Button(
