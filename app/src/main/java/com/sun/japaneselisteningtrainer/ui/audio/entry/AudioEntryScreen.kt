@@ -58,7 +58,6 @@ fun AudioEntryScreen(
                     coroutineScope.launch {
                         audioEntryViewModel.addAudio()
                         navigateBack()
-                        // Đặt trong coroutine vì nó cho phép cập nhật trạng thái UI chỉ sau khi saveItem() hoàn thành, còn nếu đặt bên ngoài, thì ngay khi bị suspend sẽ navigate luôn
                     }
 
                 }
