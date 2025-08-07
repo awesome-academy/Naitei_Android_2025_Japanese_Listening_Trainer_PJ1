@@ -27,7 +27,7 @@ import com.sun.japaneselisteningtrainer.TrainerApplication
 import com.sun.japaneselisteningtrainer.ui.audio.entry.AudioEntryViewModel
 
 /**
- * Provides Factory to create instance of ViewModel for the entire Inventory app
+ * Provides Factory to create instance of ViewModel for the entire Japanese Listening Trainer app
  */
 object AppViewModelProvider {
     val Factory = viewModelFactory {
