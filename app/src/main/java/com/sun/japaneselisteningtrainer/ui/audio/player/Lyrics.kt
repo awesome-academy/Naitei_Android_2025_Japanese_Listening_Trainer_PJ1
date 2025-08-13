@@ -125,7 +125,18 @@ fun TranscriptContainer(
         modifier = modifier.pointerInput(Unit) {
             detectHorizontalDragGestures { _, dragAmount ->
                 if (abs(dragAmount) >= thresholdPx) onToggle()
-            }
+            var toggleTriggered = false
+            detectHorizontalDragGestures(
+                onDragStart = {
+                    toggleTriggered = false
+                },
+                onHorizontalDrag = { _, dragAmount ->
+                    if (!toggleTriggered && abs(dragAmount) >= thresholdPx) {
+                        toggleTriggered = true
+                        onToggle()
+                    }
+                }
+            )
         }
     ) {
         if (visible) content()
