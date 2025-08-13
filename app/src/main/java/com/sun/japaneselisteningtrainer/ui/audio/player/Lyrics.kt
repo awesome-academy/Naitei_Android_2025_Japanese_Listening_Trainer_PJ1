@@ -70,7 +70,7 @@ fun LyricsBox(
     // Tự cuộn: đưa dòng hiện tại gần giữa viewport
     LaunchedEffect(currentLineIndex) {
         val target = max(currentLineIndex - 3, 0)
-        scope.launch { listState.animateScrollToItem(target) }
+        listState.animateScrollToItem(target)
     }
 
     Surface(
