@@ -2,7 +2,7 @@ package com.sun.japaneselisteningtrainer.data
 
 import android.content.Context
 import com.sun.japaneselisteningtrainer.data.folder.FolderRepository
-import com.sun.japaneselisteningtrainer.data.model.folder.MockFolderRepository
+import com.sun.japaneselisteningtrainer.data.repository.mock.MockFolderRepository
 import com.sun.japaneselisteningtrainer.data.repository.AudioRepository
 import com.sun.japaneselisteningtrainer.data.repository.mock.MockAudioRepository
 

@@ -25,6 +25,8 @@ import com.sun.japaneselisteningtrainer.ui.audio.entry.AudioEntryDestination
 import com.sun.japaneselisteningtrainer.ui.audio.entry.AudioEntryScreen
 import com.sun.japaneselisteningtrainer.ui.home.HomeDestination
 import com.sun.japaneselisteningtrainer.ui.home.HomeScreen
+import com.sun.japaneselisteningtrainer.ui.audio.player.LyricsScreen
+import com.sun.japaneselisteningtrainer.ui.audio.player.MusicPlayerScreen
 
 
 /**
@@ -57,5 +59,60 @@ fun TrainerNavHost(
                 }
             )
         }
+        composable(route = MusicDestination.route) {
+            // TODO: thay mock bằng state thực từ ViewModel
+            MusicPlayerScreen(
+                title = "耳から覚える日本語",
+                isPlaying = false,
+                progress = 0.12f,
+                currentTimeLabel = "00:25",
+                totalTimeLabel = "03:44",
+                isShuffleOn = false,
+                isFavorite = false,
+                onBack = { navController.popBackStack() },
+                onOpenPicker = { /* mở picker audio */ },
+                onEditAudio = { /* điều hướng sang màn Edit nếu có */ },
+                onSeek = { /* seek theo fraction */ },
+                onPlayPause = { /* toggle play/pause */ },
+                onNext = { /* next track */ },
+                onPrevious = { /* previous track */ },
+                onToggleShuffle = { /* toggle random */ },
+                onToggleFavorite = { /* toggle favorite */ },
+                onGoToLyrics = { navController.navigate(LyricsDestination.route) }
+            )
+        }
+        composable(route = LyricsDestination.route) {
+            // TODO: thay mock bằng state thực từ ViewModel
+            LyricsScreen(
+                title = "耳から覚える日本語",
+                lines = listOf(
+                    "会社で女の人と男の人が話しています。",
+                    "男：男の人はこれからまず何をしますか。",
+                    "女：今、注文があった商品を箱に入れてるところなんですけど、手伝ってくれる？"
+                ),
+                isPlaying = false,
+                progress = 0.12f,
+                currentTimeLabel = "00:25",
+                totalTimeLabel = "03:44",
+                isShuffleOn = false,
+                isFavorite = false,
+                currentLineIndex = 0,
+                currentLineProgress = 0f,
+                japaneseVisible = true,
+                onBack = { navController.popBackStack() },
+                onOpenPicker = { /* ... */ },
+                onEditAudio = { /* ... */ },
+                onSeek = { /* seek fraction */ },
+                onSeekFinished = { /* commit seek */ },
+                onPlayPause = { /* ... */ },
+                onNext = { /* ... */ },
+                onPrevious = { /* ... */ },
+                onToggleShuffle = { /* ... */ },
+                onToggleFavorite = { /* ... */ },
+                onSeekToLine = { /* jump to line -> seek ms */ },
+                onToggleTranscript = { /* toggle visible in VM */ }
+            )
+        }
     }
 }
+
