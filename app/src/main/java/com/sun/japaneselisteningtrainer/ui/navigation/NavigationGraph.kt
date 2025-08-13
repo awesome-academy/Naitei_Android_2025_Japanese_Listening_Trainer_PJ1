@@ -16,17 +16,46 @@
 
 package com.sun.japaneselisteningtrainer.ui.navigation
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.sun.japaneselisteningtrainer.ui.audio.entry.AudioEntryDestination
 import com.sun.japaneselisteningtrainer.ui.audio.entry.AudioEntryScreen
 import com.sun.japaneselisteningtrainer.ui.home.HomeDestination
 import com.sun.japaneselisteningtrainer.ui.home.HomeScreen
-import com.sun.japaneselisteningtrainer.ui.audio.player.LyricsScreen
-import com.sun.japaneselisteningtrainer.ui.audio.player.MusicPlayerScreen
+import com.sun.japaneselisteningtrainer.ui.navigation.NavItem.Companion.items
 
 
 /**
@@ -44,9 +73,7 @@ fun TrainerNavHost(
     ) {
         composable(route = HomeDestination.route) {
             HomeScreen(
-                navigateToAudioEntry = {
-                    navController.navigate(AudioEntryDestination.route)
-                }
+                navigationBar = { TrainerNavigationBar(navController = navController) }
             )
         }
         composable(route = AudioEntryDestination.route) {
@@ -59,60 +86,95 @@ fun TrainerNavHost(
                 }
             )
         }
-        composable(route = MusicDestination.route) {
-            // TODO: thay mock bằng state thực từ ViewModel
-            MusicPlayerScreen(
-                title = "耳から覚える日本語",
-                isPlaying = false,
-                progress = 0.12f,
-                currentTimeLabel = "00:25",
-                totalTimeLabel = "03:44",
-                isShuffleOn = false,
-                isFavorite = false,
-                onBack = { navController.popBackStack() },
-                onOpenPicker = { /* mở picker audio */ },
-                onEditAudio = { /* điều hướng sang màn Edit nếu có */ },
-                onSeek = { /* seek theo fraction */ },
-                onPlayPause = { /* toggle play/pause */ },
-                onNext = { /* next track */ },
-                onPrevious = { /* previous track */ },
-                onToggleShuffle = { /* toggle random */ },
-                onToggleFavorite = { /* toggle favorite */ },
-                onGoToLyrics = { navController.navigate(LyricsDestination.route) }
-            )
+    }
+}
+
+sealed class NavItem(
+    val label: String,
+    val icon: ImageVector,
+    val des: NavigationDestination?
+) {
+    object Home : NavItem("Home", Icons.Default.Home, HomeDestination)
+    object Folder : NavItem("Folder", Icons.Default.Menu, null)
+    object Add : NavItem("Add", Icons.Default.Add, AudioEntryDestination)
+    object Search : NavItem("Search", Icons.Default.Search, null)
+    object Profile : NavItem("Profile", Icons.Default.Person, null)
+
+    companion object {
+        val items = listOf(Home, Folder, Add, Search, Profile)
+    }
+}
+
+@Composable
+fun TrainerNavigationBar(navController: NavHostController) {
+
+    var selectedItem by remember { mutableStateOf(items[0]) }
+    Surface(
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = 3.dp,
+        modifier = Modifier.navigationBarsPadding(),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceAround,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            for (item in items) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                    modifier = Modifier.padding(4.dp)
+                ) {
+                    TrainerNavigationBarItem(
+                        icon = item.icon,
+                        onClick = {
+                            selectedItem = item;
+                            item.des?.route?.let { navController.navigate(it) }
+                        },
+                        isSelected = when(item) {
+                            NavItem.Add -> true
+                            selectedItem -> true
+                            else -> false
+                        }
+                    )
+                }
+            }
         }
-        composable(route = LyricsDestination.route) {
-            // TODO: thay mock bằng state thực từ ViewModel
-            LyricsScreen(
-                title = "耳から覚える日本語",
-                lines = listOf(
-                    "会社で女の人と男の人が話しています。",
-                    "男：男の人はこれからまず何をしますか。",
-                    "女：今、注文があった商品を箱に入れてるところなんですけど、手伝ってくれる？"
-                ),
-                isPlaying = false,
-                progress = 0.12f,
-                currentTimeLabel = "00:25",
-                totalTimeLabel = "03:44",
-                isShuffleOn = false,
-                isFavorite = false,
-                currentLineIndex = 0,
-                currentLineProgress = 0f,
-                japaneseVisible = true,
-                onBack = { navController.popBackStack() },
-                onOpenPicker = { /* ... */ },
-                onEditAudio = { /* ... */ },
-                onSeek = { /* seek fraction */ },
-                onSeekFinished = { /* commit seek */ },
-                onPlayPause = { /* ... */ },
-                onNext = { /* ... */ },
-                onPrevious = { /* ... */ },
-                onToggleShuffle = { /* ... */ },
-                onToggleFavorite = { /* ... */ },
-                onSeekToLine = { /* jump to line -> seek ms */ },
-                onToggleTranscript = { /* toggle visible in VM */ }
+    }
+}
+
+@Composable
+fun TrainerNavigationBarItem(
+    modifier: Modifier = Modifier,
+    icon: ImageVector,
+    onClick: () -> Unit,
+    isSelected: Boolean = false
+) {
+    Box(
+        modifier = Modifier
+            .size(48.dp)
+            .background(
+                color = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.2f) else Color.Transparent,
+                shape = CircleShape
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        IconButton(onClick = onClick) {
+            Icon(
+                imageVector = icon,
+                contentDescription = "",
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(28.dp) // icon to hơn mặc định
             )
         }
     }
 }
 
+@Preview
+@Composable
+fun TrainerNavigationBarPreview() {
+    val navController = rememberNavController()
+    TrainerNavigationBar(navController = navController)
+}

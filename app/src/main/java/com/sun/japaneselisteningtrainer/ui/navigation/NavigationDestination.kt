@@ -31,3 +31,4 @@ object LyricsDestination : NavigationDestination {
     // helper để tạo route cụ thể khi navigate
     fun createRoute(trackId: String): String = "lyrics/$trackId"
 }
+
