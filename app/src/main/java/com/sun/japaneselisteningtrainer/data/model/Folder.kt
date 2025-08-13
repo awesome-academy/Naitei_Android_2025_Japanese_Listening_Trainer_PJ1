@@ -6,5 +6,3 @@ data class Folder (
     val description: String,
     val createdAt: String,
 )
-
-val NullFolder  = Folder(-1, "", "", "")

@@ -2,6 +2,8 @@ package com.sun.japaneselisteningtrainer
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.sun.japaneselisteningtrainer.data.storage.ExternalAudioFileStorage
+import kotlinx.coroutines.test.runTest
 
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -16,9 +18,18 @@ import org.junit.Assert.*
 @RunWith(AndroidJUnit4::class)
 class ExampleInstrumentedTest {
     @Test
-    fun useAppContext() {
+    fun createAndReadFile() = runTest{
         // Context of the app under test.
         val appContext = InstrumentationRegistry.getInstrumentation().targetContext
-        assertEquals("com.sun.japaneselisteningtrainer", appContext.packageName)
+
+        val storage = ExternalAudioFileStorage(appContext)
+
+        val inputStream = appContext.assets.open("audio.mp3")
+        val file = storage.create("test.mp3", inputStream)
+
+        assertTrue(file.exists())
+
+        val readFile = storage.read("test.mp3")
+        assertNotNull(readFile)
     }
 }

@@ -1,6 +1,5 @@
 package com.sun.japaneselisteningtrainer.data.model
 
-
 data class Audio(
     val id: Int = 0,
     val title: String = "",
@@ -12,16 +11,4 @@ data class Audio(
     val isFavorite: Boolean = false,
     val listenTimes: Int = 0,
     val createdAt: String = ""
-) {
-    constructor(id: Int, title: String) : this(id,
-        title,
-        0,
-        "",
-        "",
-        "",
-        false,
-        false,
-        0,
-        ""
-    )
-}
+)
