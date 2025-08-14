@@ -25,6 +25,7 @@ import com.sun.japaneselisteningtrainer.TrainerTopAppBar
 import com.sun.japaneselisteningtrainer.ui.AppViewModelProvider
 import com.sun.japaneselisteningtrainer.R
 import com.sun.japaneselisteningtrainer.ui.navigation.NavigationDestination
+import com.sun.japaneselisteningtrainer.ui.theme.JapaneseListeningTrainerTheme
 
 
 object HomeDestination : NavigationDestination {
@@ -70,7 +71,9 @@ fun HomeScreen(
 @Preview
 @Composable
 fun HomeScreenPreview() {
+    JapaneseListeningTrainerTheme{
     HomeScreen(
         navigationBar = {}
     )
+        }
 }

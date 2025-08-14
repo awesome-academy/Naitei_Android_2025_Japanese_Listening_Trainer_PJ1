@@ -56,6 +56,7 @@ import com.sun.japaneselisteningtrainer.ui.audio.entry.AudioEntryScreen
 import com.sun.japaneselisteningtrainer.ui.home.HomeDestination
 import com.sun.japaneselisteningtrainer.ui.home.HomeScreen
 import com.sun.japaneselisteningtrainer.ui.navigation.NavItem.Companion.items
+import com.sun.japaneselisteningtrainer.ui.theme.JapaneseListeningTrainerTheme
 
 
 /**
@@ -175,6 +176,9 @@ fun TrainerNavigationBarItem(
 @Preview
 @Composable
 fun TrainerNavigationBarPreview() {
-    val navController = rememberNavController()
-    TrainerNavigationBar(navController = navController)
+    JapaneseListeningTrainerTheme{
+        val navController = rememberNavController()
+        TrainerNavigationBar(navController = navController)
+    }
+
 }

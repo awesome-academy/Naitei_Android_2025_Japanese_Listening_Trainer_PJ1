@@ -1,6 +1,5 @@
 package com.sun.japaneselisteningtrainer.ui.audio.player
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -8,34 +7,31 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.max
 
+/* ---------- 1) Lyric line: theo theme, không hard-code màu ---------- */
 @Composable
 private fun LyricLine(
     text: String,
     isCurrent: Boolean,
-    lineProgress: Float,            // 0f..1f cho dòng hiện tại
+    lineProgress: Float,  // 0f..1f cho dòng hiện tại
 ) {
-    val base = Color.White.copy(alpha = 0.65f)
-    val highlight = Color.White
+    val cs = MaterialTheme.colorScheme
+    val base = cs.onSurface.copy(alpha = 0.70f)     // chữ thường
+    val highlight = cs.onSurface                    // chữ đang hát
 
     val annotated = remember(text, isCurrent, lineProgress) {
         if (!isCurrent || text.isBlank()) {
@@ -54,8 +50,14 @@ private fun LyricLine(
         }
     }
 
-    Text(text = annotated, fontSize = 16.sp, lineHeight = 22.sp)
+    Text(
+        text = annotated,
+        fontSize = 16.sp,
+        lineHeight = 22.sp
+    )
 }
+
+/* ---------- 2) LyricsBox: container dùng surfaceVariant theo theme ---------- */
 @Composable
 fun LyricsBox(
     lines: List<String>,
@@ -65,7 +67,6 @@ fun LyricsBox(
     modifier: Modifier = Modifier
 ) {
     val listState = rememberLazyListState()
-    val scope = rememberCoroutineScope()
 
     // Tự cuộn: đưa dòng hiện tại gần giữa viewport
     LaunchedEffect(currentLineIndex) {
@@ -74,7 +75,8 @@ fun LyricsBox(
     }
 
     Surface(
-        color = Color(0x18FFFFFF),
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
         shape = MaterialTheme.shapes.medium,
         tonalElevation = 0.dp,
         shadowElevation = 0.dp,
@@ -104,6 +106,7 @@ fun LyricsBox(
     }
 }
 
+/* ---------- 3) Helpers giữ nguyên ---------- */
 fun Modifier.noRippleClickable(onClick: () -> Unit): Modifier = composed {
     val interaction = remember { MutableInteractionSource() }
     this.clickable(
@@ -112,6 +115,8 @@ fun Modifier.noRippleClickable(onClick: () -> Unit): Modifier = composed {
         onClick = onClick
     )
 }
+
+/* Container nhận swipe để toggle transcript (không dính màu) */
 @Composable
 fun TranscriptContainer(
     visible: Boolean,
@@ -119,184 +124,30 @@ fun TranscriptContainer(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit
 ) {
-    // Ngưỡng kéo để nhận là 1 lần "toggle"
     val thresholdPx = 40f
     Box(
-        modifier = modifier.pointerInput(Unit) {
-            detectHorizontalDragGestures { _, dragAmount ->
-                if (abs(dragAmount) >= thresholdPx) onToggle()
+        modifier = modifier.pointerInput(thresholdPx) {
             var toggleTriggered = false
+            var totalDx = 0f
             detectHorizontalDragGestures(
                 onDragStart = {
                     toggleTriggered = false
+                    totalDx = 0f
                 },
                 onHorizontalDrag = { _, dragAmount ->
-                    if (!toggleTriggered && abs(dragAmount) >= thresholdPx) {
-                        toggleTriggered = true
-                        onToggle()
+                    if (!toggleTriggered) {
+                        totalDx += dragAmount
+                        if (abs(totalDx) >= thresholdPx) {
+                            toggleTriggered = true
+                            onToggle()
+                        }
                     }
-                }
+                },
+                onDragEnd = { /* no-op */ },
+                onDragCancel = { /* no-op */ }
             )
         }
     ) {
         if (visible) content()
     }
-}
-
-@Composable
-fun LyricsScreen(
-    // state
-    title: String,
-    lines: List<String>,
-    isPlaying: Boolean,
-    progress: Float,
-    currentTimeLabel: String,
-    totalTimeLabel: String,
-    isShuffleOn: Boolean,
-    isFavorite: Boolean,
-    currentLineIndex: Int,
-    currentLineProgress: Float,
-    japaneseVisible: Boolean,                  // <— thêm: hiển thị transcript Nhật
-    // callbacks
-    onBack: () -> Unit,
-    onOpenPicker: () -> Unit,
-    onEditAudio: () -> Unit,
-    onSeek: (Float) -> Unit,
-    onSeekFinished: () -> Unit = {},
-    onPlayPause: () -> Unit,
-    onNext: () -> Unit,
-    onPrevious: () -> Unit,
-    onToggleShuffle: () -> Unit,
-    onToggleFavorite: () -> Unit,
-    onSeekToLine: (Int) -> Unit,
-    onToggleTranscript: () -> Unit,            // <— thêm: toggle bằng swipe
-    // style
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .background(Color(0xFF0D1B2A))
-            .systemBarsPadding()
-    ) {
-        // Top bar tái dùng từ Player
-        PlayerTopBar(
-            titleChip = "New",
-            onBack = onBack,
-            onOpenPicker = onOpenPicker,
-            onEditAudio = onEditAudio
-        )
-
-        // Content
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = title,
-                color = Color.White,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.SemiBold,
-                maxLines = 1,
-                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
-                modifier = Modifier.padding(top = 6.dp, bottom = 10.dp)
-            )
-
-            // Khung lời + Swipe toggle
-            TranscriptContainer(
-                visible = japaneseVisible,
-                onToggle = onToggleTranscript,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(0.58f)
-            ) {
-                LyricsBox(
-                    lines = lines,
-                    currentLineIndex = currentLineIndex,
-                    currentLineProgress = currentLineProgress,
-                    onSeekToLine = onSeekToLine,
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
-
-            Spacer(Modifier.height(16.dp))
-
-            // Progress bar (API hiện tại)
-            AudioProgressBar(
-                progress = progress,
-                currentLabel = currentTimeLabel,
-                totalLabel = totalTimeLabel,
-                onSeek = onSeek,
-                modifier = Modifier.padding(horizontal = 8.dp),
-                onSeekFinished = onSeekFinished
-            )
-
-            Spacer(Modifier.height(8.dp))
-        }
-
-        // Thanh điều khiển dưới – dùng TransportBar mới (stateless)
-        TransportBar(
-            isPlaying = isPlaying,
-            isShuffleOn = isShuffleOn,
-            isFavorite = isFavorite,
-            onToggleShuffle = onToggleShuffle,
-            onPrevious = onPrevious,
-            onPlayPause = onPlayPause,
-            onNext = onNext,
-            onToggleFavorite = onToggleFavorite,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 12.dp)
-        )
-    }
-}
-
-/* ---------------------------------- Preview -------------------------------- */
-
-@Preview(
-    showBackground = true,
-    backgroundColor = 0xFF0D1B2A,
-    widthDp = 360,
-    heightDp = 780
-)
-@Composable
-private fun LyricsPreview() {
-    val mock = listOf(
-        "会社で女の人と男の人が話しています。",
-        "男：男の人はこれからまず何をしますか。",
-        "女：今、注文があった商品を箱に入れてるところなんですけど、手伝ってくれる？",
-        "男：箱に入れるんですか。",
-        "女：それはもうすぐ終わるから、できたのから配送用の宛名シールを貼っていって。",
-        "でも、その前に、一応中身が合ってるかどうか確認してもらえる？",
-        "女：うん。じゃ、それは中身を確認する前にお願い。"
-    )
-
-    LyricsScreen(
-        title = "耳から覚える日本語",
-        lines = mock,
-        isPlaying = true,
-        progress = 0.35f,
-        currentTimeLabel = "01:15",
-        totalTimeLabel = "03:44",
-        isShuffleOn = true,
-        isFavorite = false,
-        currentLineIndex = 2,
-        currentLineProgress = 0.55f,
-        japaneseVisible = true,
-        onBack = {},
-        onOpenPicker = {},
-        onEditAudio = {},
-        onSeek = {},
-        onSeekFinished = {},
-        onPlayPause = {},
-        onNext = {},
-        onPrevious = {},
-        onToggleShuffle = {},
-        onToggleFavorite = {},
-        onSeekToLine = {},
-        onToggleTranscript = {}
-    )
 }
