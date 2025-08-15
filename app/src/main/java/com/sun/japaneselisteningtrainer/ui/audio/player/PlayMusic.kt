@@ -13,6 +13,7 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -294,7 +295,114 @@ object PlayMusicDestination : NavigationDestination {
     override val titleRes = R.string.track_id
 }
 /* --------------------------------- Screen --------------------------------- */
+@Composable
+fun PlayerView(
+    modifier: Modifier = Modifier,
+    title: String,
+    albumRes: Int,
+    isPlaying: Boolean,
+    progress: Float,
+    currentTimeLabel: String,
+    totalTimeLabel: String,
+    isShuffleOn: Boolean,
+    isFavorite: Boolean,
+    onSeek: (Float) -> Unit,
+    onSeekFinished: () -> Unit = {},
+    onPrevious: () -> Unit,
+    onPlayPause: () -> Unit,
+    onNext: () -> Unit,
+    onToggleShuffle: () -> Unit,
+    onToggleFavorite: () -> Unit,
+) {
+    val cs = MaterialTheme.colorScheme
+    val typo = MaterialTheme.typography
 
+    // Màn hình vẫn nền kem của app
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp), // bo lề cho “thẻ player”
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // Thẻ player: xanh nhạt + bo góc
+        Surface(
+            color = cs.secondaryContainer,
+            contentColor = cs.onSecondaryContainer,
+            shape = MaterialTheme.shapes.large,
+            tonalElevation = 0.dp,
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+                .padding(bottom = 16.dp)
+                .padding(top = 16.dp)
+
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // Khối đĩa nhích lên
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .weight(0.40f),
+                    contentAlignment = Alignment.BottomCenter
+                ) {
+                    RotatingDisc(
+                        imageRes = albumRes,
+                        isPlaying = isPlaying,
+                        size = 260.dp,
+                        // viền theo outlineVariant để dịu
+                        borderColor = MaterialTheme.colorScheme.outlineVariant
+                    )
+                }
+
+                // Nội dung dưới
+                Column(
+                    Modifier
+                        .fillMaxWidth()
+                        .weight(0.45f),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Spacer(Modifier.height(12.dp))
+                    Text(
+                        text = title,
+                        style = typo.displayMedium,
+                        color = cs.onSecondaryContainer,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+
+                    Spacer(Modifier.height(12.dp))
+                    AudioProgressBar(
+                        progress = progress,
+                        currentLabel = currentTimeLabel,
+                        totalLabel = totalTimeLabel,
+                        onSeek = onSeek,
+                        onSeekFinished = onSeekFinished,
+                        // tuỳ chọn: chỉnh màu track theo container
+                        modifier = Modifier,
+                    )
+
+                    Spacer(Modifier.height(8.dp))
+                    TransportBar(
+                        isPlaying = isPlaying,
+                        isShuffleOn = isShuffleOn,
+                        isFavorite = isFavorite,
+                        onToggleShuffle = onToggleShuffle,
+                        onPrevious = onPrevious,
+                        onPlayPause = onPlayPause,
+                        onNext = onNext,
+                        onToggleFavorite = onToggleFavorite
+                    )
+                    Spacer(Modifier.height(8.dp))
+                }
+            }
+        }
+    }
+}
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AudioPlayerWithTranscriptScreen(
@@ -333,7 +441,6 @@ fun AudioPlayerWithTranscriptScreen(
     albumRes: Int = R.drawable.son_tung
 ) {
     val cs = MaterialTheme.colorScheme
-    val typo = MaterialTheme.typography
 
     Scaffold(
         topBar = {
@@ -341,15 +448,11 @@ fun AudioPlayerWithTranscriptScreen(
                 title = stringResource(PlayMusicDestination.titleRes),
                 canNavigateBack = true,
                 navigateUp = onBack,
-                actions = {
-                    EditAudioButton(onClick = onEditAudio)
-
-                }
+                actions = { EditAudioButton(onClick = onEditAudio) }
             )
         },
         containerColor = cs.background
     ) { inner ->
-        // Container nhận swipe để toggle transcript
         TranscriptContainer(
             visible = true,
             onToggle = onToggleTranscript,
@@ -366,117 +469,49 @@ fun AudioPlayerWithTranscriptScreen(
                 label = "player-lyrics"
             ) { showLyrics ->
                 if (!showLyrics) {
-                    // --------------------------- PLAYER VIEW ---------------------------
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 24.dp),
-                    ) {
-                        // Vùng dành cho đĩa: ~55% chiều cao, canh đáy để đĩa “nhích lên”
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .weight(0.40f),          // <- chỉnh tỉ lệ để đĩa cao/thấp hơn
-                            contentAlignment = Alignment.BottomCenter
-                        ) {
-                            RotatingDisc(
-                                imageRes = albumRes,
-                                isPlaying = isPlaying,
-                                size = 260.dp            // có thể 260–280dp cho đẹp
-                            )
-                        }
-
-                        // Vùng nội dung dưới: ~45% chiều cao
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .weight(0.45f),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Spacer(Modifier.height(12.dp))
-                            Text(
-                                text = stringResource(PlayMusicDestination.titleRes),
-                                color = MaterialTheme.colorScheme.onBackground,
-                                style = MaterialTheme.typography.displayMedium,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-
-                            Spacer(Modifier.height(12.dp))
-                            AudioProgressBar(
-                                progress = progress,
-                                currentLabel = currentTimeLabel,
-                                totalLabel = totalTimeLabel,
-                                onSeek = onSeek,
-                                onSeekFinished = onSeekFinished
-                            )
-
-                            Spacer(Modifier.height(8.dp))
-                            TransportBar(
-                                isPlaying = isPlaying,
-                                isShuffleOn = isShuffleOn,
-                                isFavorite = isFavorite,
-                                onToggleShuffle = onToggleShuffle,
-                                onPrevious = onPrevious,
-                                onPlayPause = onPlayPause,
-                                onNext = onNext,
-                                onToggleFavorite = onToggleFavorite
-                            )
-                            Spacer(Modifier.height(8.dp))
-                        }
-                    }
+                    PlayerView(
+                        title = stringResource(PlayMusicDestination.titleRes),
+                        albumRes = albumRes,
+                        isPlaying = isPlaying,
+                        progress = progress,
+                        currentTimeLabel = currentTimeLabel,
+                        totalTimeLabel = totalTimeLabel,
+                        isShuffleOn = isShuffleOn,
+                        isFavorite = isFavorite,
+                        onSeek = onSeek,
+                        onSeekFinished = onSeekFinished,
+                        onPrevious = onPrevious,
+                        onPlayPause = onPlayPause,
+                        onNext = onNext,
+                        onToggleShuffle = onToggleShuffle,
+                        onToggleFavorite = onToggleFavorite
+                    )
                 } else {
-                    // --------------------------- LYRICS VIEW ---------------------------
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = stringResource(HomeDestination.titleRes),
-                            color = cs.onBackground,
-                            style = typo.displayMedium,
-                            maxLines = 1,
-                            modifier = Modifier.padding(top = 8.dp, bottom = 12.dp)
-                        )
-                        LyricsBox(
-                            lines = lines,
-                            currentLineIndex = currentLineIndex,
-                            currentLineProgress = currentLineProgress,
-                            onSeekToLine = { /* map line -> time tại VM rồi call onSeek */ },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .weight(0.58f)
-                        )
-                        Spacer(Modifier.height(12.dp))
-                        AudioProgressBar(
-                            progress = progress,
-                            currentLabel = currentTimeLabel,
-                            totalLabel = totalTimeLabel,
-                            onSeek = onSeek,
-                            onSeekFinished = onSeekFinished,
-                            modifier = Modifier.padding(horizontal = 8.dp)
-                        )
-                        Spacer(Modifier.height(8.dp))
-                        TransportBar(
-                            isPlaying = isPlaying,
-                            isShuffleOn = isShuffleOn,
-                            isFavorite = isFavorite,
-                            onToggleShuffle = onToggleShuffle,
-                            onPrevious = onPrevious,
-                            onPlayPause = onPlayPause,
-                            onNext = onNext,
-                            onToggleFavorite = onToggleFavorite,
-                            modifier = Modifier.padding(bottom = 12.dp)
-                        )
-                    }
+                    LyricsView(
+                        headerTitle = stringResource(HomeDestination.titleRes),
+                        lines = lines,
+                        currentLineIndex = currentLineIndex,
+                        currentLineProgress = currentLineProgress,
+                        progress = progress,
+                        currentTimeLabel = currentTimeLabel,
+                        totalTimeLabel = totalTimeLabel,
+                        isPlaying = isPlaying,
+                        isShuffleOn = isShuffleOn,
+                        isFavorite = isFavorite,
+                        onSeek = onSeek,
+                        onSeekFinished = onSeekFinished,
+                        onSeekToLine = { /* map line->time ở VM rồi gọi onSeek */ },
+                        onPrevious = onPrevious,
+                        onPlayPause = onPlayPause,
+                        onNext = onNext,
+                        onToggleShuffle = onToggleShuffle,
+                        onToggleFavorite = onToggleFavorite
+                    )
                 }
             }
         }
     }
 }
-
 
 /* -------------------------------- Preview --------------------------------- */
 

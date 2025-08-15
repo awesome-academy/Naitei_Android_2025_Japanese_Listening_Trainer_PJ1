@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -56,7 +57,6 @@ private fun LyricLine(
         lineHeight = 22.sp
     )
 }
-
 /* ---------- 2) LyricsBox: container dùng surfaceVariant theo theme ---------- */
 @Composable
 fun LyricsBox(
@@ -149,5 +149,81 @@ fun TranscriptContainer(
         }
     ) {
         if (visible) content()
+    }
+}
+
+@Composable
+fun LyricsView(
+    // state
+    modifier: Modifier = Modifier ,
+    headerTitle: String,
+    lines: List<String>,
+    currentLineIndex: Int,
+    currentLineProgress: Float,
+    progress: Float,
+    currentTimeLabel: String,
+    totalTimeLabel: String,
+    isPlaying: Boolean,
+    isShuffleOn: Boolean,
+    isFavorite: Boolean,
+    // actions
+    onSeek: (Float) -> Unit,
+    onSeekFinished: () -> Unit = {},
+    onSeekToLine: (Int) -> Unit,
+    onPrevious: () -> Unit,
+    onPlayPause: () -> Unit,
+    onNext: () -> Unit,
+    onToggleShuffle: () -> Unit,
+    onToggleFavorite: () -> Unit,
+) {
+    val cs = MaterialTheme.colorScheme
+    val typo = MaterialTheme.typography
+
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = headerTitle,
+            style = typo.displayMedium,
+            color = cs.onBackground,
+            maxLines = 1,
+            modifier = Modifier.padding(top = 8.dp, bottom = 12.dp)
+        )
+
+        LyricsBox(
+            lines = lines,
+            currentLineIndex = currentLineIndex,
+            currentLineProgress = currentLineProgress,
+            onSeekToLine = onSeekToLine,
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(0.58f)
+        )
+
+        Spacer(Modifier.height(12.dp))
+        AudioProgressBar(
+            progress = progress,
+            currentLabel = currentTimeLabel,
+            totalLabel = totalTimeLabel,
+            onSeek = onSeek,
+            onSeekFinished = onSeekFinished,
+            modifier = Modifier.padding(horizontal = 8.dp)
+        )
+
+        Spacer(Modifier.height(8.dp))
+        TransportBar(
+            isPlaying = isPlaying,
+            isShuffleOn = isShuffleOn,
+            isFavorite = isFavorite,
+            onToggleShuffle = onToggleShuffle,
+            onPrevious = onPrevious,
+            onPlayPause = onPlayPause,
+            onNext = onNext,
+            onToggleFavorite = onToggleFavorite,
+            modifier = Modifier.padding(bottom = 12.dp)
+        )
     }
 }
