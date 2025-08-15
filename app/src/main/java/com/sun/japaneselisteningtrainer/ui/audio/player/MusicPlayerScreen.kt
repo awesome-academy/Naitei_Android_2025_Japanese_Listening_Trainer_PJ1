@@ -185,7 +185,7 @@ fun LyricView(
     LyricsBox(
         lines = listOf("Ahayo", "Arigatougozaimasu"),
         currentLineIndex = 0,
-        currentLineProgress = 1.2f,
+        currentLineProgress = 1.0f,
         onSeekToLine = { /* map line -> time tại VM rồi call onSeek */ },
         modifier = modifier
     )
