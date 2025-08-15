@@ -1,4 +1,4 @@
-package com.sun.japaneselisteningtrainer.ui.audio.player
+package com.sun.japaneselisteningtrainer.ui.audio.player.components
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
@@ -9,7 +9,6 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.input.pointer.pointerInput
@@ -85,7 +84,6 @@ fun LyricsBox(
         LazyColumn(
             state = listState,
             modifier = Modifier
-                .fillMaxSize()
                 .padding(horizontal = 14.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
