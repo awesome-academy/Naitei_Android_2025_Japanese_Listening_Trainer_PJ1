@@ -196,5 +196,4 @@ fun TrainerNavigationBarPreview() {
         val navController = rememberNavController()
         TrainerNavigationBar(navController = navController)
     }
-
 }
