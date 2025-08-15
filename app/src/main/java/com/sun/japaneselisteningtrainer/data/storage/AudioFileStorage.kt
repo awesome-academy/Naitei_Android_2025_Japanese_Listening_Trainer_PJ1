@@ -1,28 +1,31 @@
 package com.sun.japaneselisteningtrainer.data.storage
 
+import android.net.Uri
 import java.io.File
 import java.io.InputStream
 
 interface AudioFileStorage {
     /**
-     * Save audio file [fileName] from [input] into storage.
-     * Returns the written [File].
+     * Save audio file from from [inputUri] into storage.
+     * Returns the URI to access the saved file.
+     * **Should save the URI to the database for later retrieval.**
      */
-    suspend fun create(fileName: String, input: InputStream): File
+    suspend fun save(inputUri: Uri): Uri
 
     /**
-     * Return [File] for [fileName] if it exists.
+     * Return [File] for an [uri] pointing to a stored file if it exists.
      */
-    suspend fun read(fileName: String): File?
+    suspend fun get(uri: Uri): File?
 
     /**
-     * Replace content of [fileName] with data from [input].
-     * Returns the updated [File].
+     * Replace content of an existing file has [uri] with data from [inputUri].
+     * Return true if successful.
+     * Return false if file does not exist.
      */
-    suspend fun update(fileName: String, input: InputStream): File
+    suspend fun update(uri: Uri, inputUri: Uri) : Boolean
 
     /**
-     * Delete stored file [fileName]. Returns true if deletion was successful.
+     * Delete stored file has [uri].
      */
-    suspend fun delete(fileName: String): Boolean
+    suspend fun delete(uri: Uri): Boolean
 }

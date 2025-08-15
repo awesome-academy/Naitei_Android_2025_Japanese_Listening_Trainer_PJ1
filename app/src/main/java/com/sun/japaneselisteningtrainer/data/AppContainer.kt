@@ -25,22 +25,20 @@ interface AppContainer {
  * [AppContainer] implementation that provides instance of mock repository
  */
 class MockAppDataContainer(private val context: Context) : AppContainer {
+
     override val audioRepository: AudioRepository = MockAudioRepository()
     override val folderRepository: FolderRepository = MockFolderRepository()
-    override val audioFileStorage: AudioFileStorage by lazy {
-        ExternalAudioFileStorage(context)
-    }
+    override val audioFileStorage: AudioFileStorage = ExternalAudioFileStorage(context)
 }
 
 class AppDataContainer(private val context: Context) : AppContainer {
     val dbHelper = JLTDbHelper(context)
+
     override val audioRepository: AudioRepository by lazy {
         LocalAudioRepository(JLTDbHelper(context))
     }
     override val folderRepository: FolderRepository by lazy {
         LocalFolderRepository(JLTDbHelper(context))
     }
-    override val audioFileStorage: AudioFileStorage by lazy {
-        ExternalAudioFileStorage(context)
-    }
+    override val audioFileStorage: AudioFileStorage = ExternalAudioFileStorage(context)
 }
