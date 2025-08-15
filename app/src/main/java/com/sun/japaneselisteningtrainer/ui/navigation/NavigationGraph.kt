@@ -73,7 +73,7 @@ fun TrainerNavHost(
 ) {
     NavHost(
         navController = navController,
-        startDestination = MusicPlayerDestination.createRoute(1),
+        startDestination = HomeDestination.route,
         modifier = modifier
     ) {
         composable(route = HomeDestination.route) {
