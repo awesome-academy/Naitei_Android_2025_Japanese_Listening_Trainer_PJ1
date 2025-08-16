@@ -9,4 +9,6 @@
     <string name="cancel">Cancel</string>
     <string name="ok">OK</string>
     <string name="title">Title</string>
+    <string name="folder_title_exists">Folder already exists</string>
+    <string name="description">Description</string>
 </resources>

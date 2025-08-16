@@ -28,6 +28,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -36,6 +37,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -45,6 +47,7 @@ import com.sun.japaneselisteningtrainer.R
 import com.sun.japaneselisteningtrainer.TrainerTopAppBar
 import com.sun.japaneselisteningtrainer.data.model.Folder
 import com.sun.japaneselisteningtrainer.ui.AppViewModelProvider
+import com.sun.japaneselisteningtrainer.ui.folder.create.CreateFolderDialog
 import com.sun.japaneselisteningtrainer.ui.navigation.NavigationDestination
 import com.sun.japaneselisteningtrainer.ui.theme.JapaneseListeningTrainerTheme
 
@@ -61,16 +64,16 @@ fun FolderListScreen(
     navigateBar: @Composable () -> Unit = {},
     viewModel: FolderListViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
-    val uiState by viewModel.homeUiState.collectAsState()
-    val createFolderUiState = viewModel.createFolderUiState
+    val uiState by viewModel.folderListUiState.collectAsState()
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     var createFolderRequired by remember { mutableStateOf(false) }
     Scaffold(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             TrainerTopAppBar(
                 title = stringResource(FolderListDestination.titleRes),
                 canNavigateBack = false,
-                navigateUp = { },
+                scrollBehavior = scrollBehavior,
                 actions = {
                     AddButton(
                         onClick = { createFolderRequired = true }
@@ -90,28 +93,13 @@ fun FolderListScreen(
                 )
             }
         }
+
         if (createFolderRequired) {
             CreateFolderDialog(
-                title = createFolderUiState.title,
-                description = createFolderUiState.description,
-                onTitleChange = { title ->
-                    viewModel.updateUiState(
-                        title,
-                        createFolderUiState.description
-                    )
-                },
-                onDescriptionChange = { description ->
-                    viewModel.updateUiState(
-                        createFolderUiState.title,
-                        description
-                    )
-                },
                 onCreateConfirm = {
-                    viewModel.createFolder()
                     createFolderRequired = false
                 },
                 onCancel = { createFolderRequired = false },
-                isEntryValid = createFolderUiState.isEntryValid
             )
         }
     }
@@ -130,57 +118,7 @@ fun AddButton(
     }
 }
 
-@Composable
-fun CreateFolderDialog(
-    title: String,
-    description: String,
-    onTitleChange: (String) -> Unit,
-    onDescriptionChange: (String) -> Unit,
-    onCreateConfirm: () -> Unit,
-    isEntryValid: Boolean,
-    onCancel: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
 
-    AlertDialog(
-        onDismissRequest = { onCancel() },
-        containerColor = MaterialTheme.colorScheme.surface,
-        title = { Text(stringResource(R.string.create_folder_title)) },
-        text = {
-            Column {
-                OutlinedTextField(
-                    value = title,
-                    onValueChange = { onTitleChange(it) },
-                    label = { Text(stringResource(R.string.title)) },
-                    singleLine = true,
-                    isError = isEntryValid,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = description,
-                    onValueChange = { onDescriptionChange(it) },
-                    label = { Text("Description") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-        },
-        modifier = modifier,
-        dismissButton = {
-            TextButton(onClick = onCancel) {
-                Text(stringResource(R.string.cancel))
-            }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = onCreateConfirm,
-                enabled = isEntryValid
-            ) {
-                Text(stringResource(R.string.ok))
-            }
-        }
-    )
-}
 
 
 @Composable

@@ -11,18 +11,18 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.withContext
 
-interface SQLiteChangeObserver {
+interface ChangeObserver {
     fun onChanged()
 }
 
 class DbChangeNotifier {
-    private val observers = mutableListOf<SQLiteChangeObserver>()
+    private val observers = mutableListOf<ChangeObserver>()
 
-    fun register(observer: SQLiteChangeObserver) {
+    fun register(observer: ChangeObserver) {
         observers.add(observer)
     }
 
-    fun remove(observer: SQLiteChangeObserver) {
+    fun remove(observer: ChangeObserver) {
         observers.remove(observer)
     }
 
@@ -125,7 +125,7 @@ class LocalAudioRepository(private val dbHelper: JLTDbHelper) : AudioRepository 
             return audioList
         }
 
-        val observer = object : SQLiteChangeObserver {
+        val observer = object : ChangeObserver {
             override fun onChanged() {
                 try {
                     trySend(query()).isSuccess
@@ -184,7 +184,7 @@ class LocalAudioRepository(private val dbHelper: JLTDbHelper) : AudioRepository 
             return null
         }
 
-        val observer = object : SQLiteChangeObserver {
+        val observer = object : ChangeObserver {
             override fun onChanged() {
                 trySend(query()).isSuccess
             }

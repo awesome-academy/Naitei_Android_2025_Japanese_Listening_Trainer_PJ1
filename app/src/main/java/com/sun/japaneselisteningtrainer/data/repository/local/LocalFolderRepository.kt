@@ -62,7 +62,7 @@ class LocalFolderRepository(dbHelper: JLTDbHelper) : FolderRepository {
             return folderList
         }
 
-        val observer = object : SQLiteChangeObserver {
+        val observer = object : ChangeObserver {
             override fun onChanged() {
                 trySend(query()).isSuccess
             }
@@ -90,7 +90,7 @@ class LocalFolderRepository(dbHelper: JLTDbHelper) : FolderRepository {
             return null
         }
 
-        val observer = object : SQLiteChangeObserver {
+        val observer = object : ChangeObserver {
             override fun onChanged() {
                 trySend(query()).isSuccess
             }
