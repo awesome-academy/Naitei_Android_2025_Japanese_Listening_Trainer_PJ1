@@ -52,6 +52,7 @@ import com.sun.japaneselisteningtrainer.ui.AppViewModelProvider
 import com.sun.japaneselisteningtrainer.ui.components.MenuDialog
 import com.sun.japaneselisteningtrainer.ui.components.MenuItem
 import com.sun.japaneselisteningtrainer.ui.folder.create.CreateFolderDialog
+import com.sun.japaneselisteningtrainer.ui.folder.edit.EditFolderDialog
 import com.sun.japaneselisteningtrainer.ui.navigation.NavigationDestination
 import com.sun.japaneselisteningtrainer.ui.theme.JapaneseListeningTrainerTheme
 import kotlinx.coroutines.launch
@@ -98,7 +99,7 @@ fun FolderListScreen(
         }
     ) { it ->
         LazyColumn(contentPadding = it) {
-            items(uiState.folderList) {
+            items(uiState.folderList, key = { it.id }) {
                 FolderItem(
                     folder = it,
                     onClick = { },
@@ -127,7 +128,10 @@ fun FolderListScreen(
         if (uiState.showMenu) {
             FolderMenuDialog(
                 modifier = Modifier.fillMaxWidth(0.6f),
-                onEdit = { },
+                onEdit = {
+                    viewModel.dismissMenu()
+                    viewModel.showEditForm()
+                },
                 onDelete =
                     {
                         scope.launch {
@@ -142,6 +146,21 @@ fun FolderListScreen(
                         }
                     },
                 onDismiss = { viewModel.dismissMenu() }
+            )
+        }
+
+        if (uiState.showEditForm) {
+            EditFolderDialog(
+                onConfirm = {
+                    viewModel.dismissEditForm()
+                    scope.launch {
+                        snackBarHostState.showTrainerSnackbar(
+                            message = "Folder Edited"
+                        )
+                    }
+                },
+                onCancel = { viewModel.dismissEditForm() },
+                selected = uiState.selectedFolder
             )
         }
     }

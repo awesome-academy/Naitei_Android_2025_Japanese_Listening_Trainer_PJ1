@@ -14,16 +14,17 @@ import kotlinx.coroutines.withContext
 
 class MockFolderRepository : FolderRepository {
     private val folderDatabase = mutableListOf<Folder>()
+    private var id = 0
     private val notifier = DbChangeNotifier()
     init {
-        folderDatabase.add(Folder(1, "Folder 1", "Description for Folder 1"))
-        folderDatabase.add(Folder(2, "Folder 2", "Description for Folder 2"))
-        folderDatabase.add(Folder(3, "Folder 3", "Description for Folder 3"))
+        folderDatabase.add(Folder(id = id++, name = "Folder 1", description = "Description for Folder 1"))
+        folderDatabase.add(Folder(id = id++, name = "Folder 2", description ="Description for Folder 2"))
+        folderDatabase.add(Folder(id = id++, name ="Folder 3", description = "Description for Folder 3"))
     }
 
     override suspend fun add(folder: Folder): Unit = withContext(Dispatchers.IO) {
         Log.d("MockFolderRepository", "Adding folder: $folder")
-        folderDatabase.add(folder)
+        folderDatabase.add(folder.copy(id = id++))
         notifier.notifyChanged()
     }
 
@@ -36,7 +37,11 @@ class MockFolderRepository : FolderRepository {
     }
 
     override suspend fun update(folder: Folder): Unit = withContext(Dispatchers.IO) {
-        TODO("Not yet implemented")
+        val index = folderDatabase.indexOfFirst { it.id == folder.id }
+        if (index != -1) {
+            folderDatabase[index] = folder
+            notifier.notifyChanged()
+        }
     }
 
     override fun getAllFolderStream(): Flow<List<Folder>> = callbackFlow {

@@ -26,7 +26,9 @@ import com.sun.japaneselisteningtrainer.ui.home.HomeViewModel
 import com.sun.japaneselisteningtrainer.TrainerApplication
 import com.sun.japaneselisteningtrainer.ui.audio.entry.AudioEntryViewModel
 import com.sun.japaneselisteningtrainer.ui.folder.FolderListViewModel
+import com.sun.japaneselisteningtrainer.ui.folder.components.FolderFormDialog.FolderFormViewModel
 import com.sun.japaneselisteningtrainer.ui.folder.create.CreateFolderViewModel
+import com.sun.japaneselisteningtrainer.ui.folder.edit.EditFolderViewModel
 
 /**
  * Provides Factory to create instance of ViewModel for the entire Japanese Listening Trainer app
@@ -57,6 +59,18 @@ object AppViewModelProvider {
         // Initializer for [CreateFolderViewModel]
         initializer {
             CreateFolderViewModel(
+                folderRepository = trainerApplication().container.folderRepository
+            )
+        }
+
+        initializer {
+            FolderFormViewModel(
+                folderRepository = trainerApplication().container.folderRepository
+            )
+        }
+
+        initializer {
+            EditFolderViewModel(
                 folderRepository = trainerApplication().container.folderRepository
             )
         }

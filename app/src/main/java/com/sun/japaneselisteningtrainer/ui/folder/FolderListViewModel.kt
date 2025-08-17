@@ -1,6 +1,5 @@
 package com.sun.japaneselisteningtrainer.ui.folder
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -8,14 +7,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sun.japaneselisteningtrainer.data.folder.FolderRepository
 import com.sun.japaneselisteningtrainer.data.model.Folder
-import com.sun.japaneselisteningtrainer.ui.folder.create.CreateFolderUiState
-import com.sun.japaneselisteningtrainer.ui.home.HomeUiState
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.util.Stack
 
@@ -65,6 +56,14 @@ class FolderListViewModel(private val folderRepository: FolderRepository) : View
         Cache.reset()
     }
 
+    fun showEditForm() {
+        folderListUiState = folderListUiState.copy(showEditForm = true)
+    }
+
+    fun dismissEditForm() {
+        folderListUiState = folderListUiState.copy(showEditForm = false)
+    }
+
     companion object {
         private const val TIMEOUT_MILLIS = 5_000L
     }
@@ -73,7 +72,8 @@ class FolderListViewModel(private val folderRepository: FolderRepository) : View
 data class FolderListUiState(
     val folderList: List<Folder> = listOf(),
     val showMenu: Boolean = false,
-    val selectedFolder: Folder = Folder()
+    val selectedFolder: Folder = Folder(),
+    val showEditForm: Boolean = false
 )
 
 object Cache {
