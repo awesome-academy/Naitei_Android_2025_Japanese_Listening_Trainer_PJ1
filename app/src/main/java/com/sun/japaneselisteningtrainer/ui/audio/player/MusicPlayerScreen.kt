@@ -314,7 +314,7 @@ fun AudioController(
             onToggleFavorite = { 
                 // Toggle favorite trong database
                 currentAudio?.let { audio ->
-                    kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Main).launch {
+                    scope.launch {
                         audioServiceManager.toggleFavoriteStatus(audio)
                     }
                 }
