@@ -1,6 +1,7 @@
 package com.sun.japaneselisteningtrainer.ui.folder.edit
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -10,6 +11,7 @@ import com.sun.japaneselisteningtrainer.data.model.Folder
 import com.sun.japaneselisteningtrainer.ui.AppViewModelProvider
 import com.sun.japaneselisteningtrainer.ui.folder.components.FolderFormDialog.FolderFormDialog
 import kotlinx.coroutines.launch
+import java.util.UUID
 
 @Composable
 fun EditFolderDialog(
@@ -17,16 +19,24 @@ fun EditFolderDialog(
     onConfirm: () -> Unit,
     onCancel: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel : EditFolderViewModel = viewModel(factory = AppViewModelProvider.Factory)
+    viewModel: EditFolderViewModel = viewModel(
+        factory = AppViewModelProvider.Factory
+    )
 ) {
     val coroutineScope = rememberCoroutineScope()
+
+    LaunchedEffect(selected) {
+        viewModel.loadFolder(selected)
+    }
+
     FolderFormDialog(
-        title = stringResource(R.string.edit_folder_title),
-        selected = selected,
+        title = stringResource(R.string.create_folder_title),
+        uiState = viewModel.uiState,
+        onValueChange = viewModel::updateUiState,
         onCancel = onCancel,
-        onConfirm = {folder ->
+        onConfirm = {
             coroutineScope.launch {
-                viewModel.editFolder(folder)
+                viewModel.saveEditedFolder()
                 onConfirm()
             }
         },

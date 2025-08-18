@@ -48,18 +48,16 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.sun.japaneselisteningtrainer.ui.folder.FolderListDestination
-import com.sun.japaneselisteningtrainer.ui.folder.FolderListScreen
 import com.sun.japaneselisteningtrainer.ui.audio.entry.AudioEntryDestination
 import com.sun.japaneselisteningtrainer.ui.audio.entry.AudioEntryScreen
+import com.sun.japaneselisteningtrainer.ui.folder.FolderListDestination
+import com.sun.japaneselisteningtrainer.ui.folder.FolderListScreen
 import com.sun.japaneselisteningtrainer.ui.home.HomeDestination
 import com.sun.japaneselisteningtrainer.ui.home.HomeScreen
 import com.sun.japaneselisteningtrainer.ui.navigation.NavItem.Add
 import com.sun.japaneselisteningtrainer.ui.navigation.NavItem.Companion.items
 import com.sun.japaneselisteningtrainer.ui.navigation.NavItem.Folder
 import com.sun.japaneselisteningtrainer.ui.navigation.NavItem.Home
-import com.sun.japaneselisteningtrainer.ui.navigation.NavItem.Profile
-import com.sun.japaneselisteningtrainer.ui.navigation.NavItem.Search
 import com.sun.japaneselisteningtrainer.ui.theme.JapaneseListeningTrainerTheme
 
 sealed class NavItem(

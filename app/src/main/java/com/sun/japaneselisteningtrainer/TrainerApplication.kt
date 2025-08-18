@@ -13,7 +13,7 @@ class TrainerApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        container = MockAppDataContainer(this)
+        container = AppDataContainer(this)
     }
 
 }

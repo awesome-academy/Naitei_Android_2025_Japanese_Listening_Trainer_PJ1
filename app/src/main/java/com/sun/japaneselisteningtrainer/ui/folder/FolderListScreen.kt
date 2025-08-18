@@ -38,6 +38,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
@@ -209,7 +210,7 @@ fun FolderItem(
     modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = modifier.combinedClickable(
+        modifier = modifier.clip(MaterialTheme.shapes.medium).combinedClickable(
             onLongClick = onLongClick,
             onClick = onClick,
         ),

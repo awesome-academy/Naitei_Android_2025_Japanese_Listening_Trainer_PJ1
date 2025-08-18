@@ -18,7 +18,7 @@ class LocalFolderRepository(dbHelper: JLTDbHelper) : FolderRepository {
         val values = ContentValues().apply {
             put(JLTContract.Folder.COLUMN_NAME, folder.name)
             put(JLTContract.Folder.COLUMN_DESCRIPTION, folder.description)
-            put(JLTContract.Folder.COLUMN_CREATED_AT, folder.createdAt)
+            put(JLTContract.Folder.COLUMN_CREATED_AT, System.currentTimeMillis())
         }
         db.insert(JLTContract.Folder.TABLE_NAME, null, values)
         notifier.notifyChanged()
@@ -105,7 +105,33 @@ class LocalFolderRepository(dbHelper: JLTDbHelper) : FolderRepository {
         }
     }
 
-    override fun getFolderStream(title: String): Flow<Folder?> {
-        TODO("Not yet implemented")
+    override fun getFolderStream(title: String): Flow<Folder?> = callbackFlow {
+        fun query(): Folder? {
+            val query = "SELECT * FROM ${JLTContract.Folder.TABLE_NAME} WHERE ${JLTContract.Folder.COLUMN_NAME} = ?"
+            val cursor = db.rawQuery(query, arrayOf(title))
+            if (cursor.moveToFirst()) {
+                val id = cursor.getInt(cursor.getColumnIndexOrThrow(BaseColumns._ID))
+                val name = cursor.getString(cursor.getColumnIndexOrThrow(JLTContract.Folder.COLUMN_NAME))
+                val description = cursor.getString(cursor.getColumnIndexOrThrow(JLTContract.Folder.COLUMN_DESCRIPTION))
+                val createdAt = cursor.getLong(cursor.getColumnIndexOrThrow(JLTContract.Folder.COLUMN_CREATED_AT))
+                return Folder(id, name, description, createdAt)
+            }
+            cursor.close()
+            return null
+        }
+
+        val observer = object : ChangeObserver {
+            override fun onChanged() {
+                trySend(query()).isSuccess
+            }
+        }
+
+        notifier.register(observer)
+
+        trySend(query()).isSuccess
+
+        awaitClose {
+            notifier.remove(observer)
+        }
     }
 }

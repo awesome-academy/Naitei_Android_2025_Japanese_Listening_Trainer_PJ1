@@ -10,34 +10,25 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sun.japaneselisteningtrainer.R
-import com.sun.japaneselisteningtrainer.data.model.Folder
-import com.sun.japaneselisteningtrainer.ui.AppViewModelProvider
+
+const val DESCRIPTION_MAX_LENGTH = 30
 
 /**
  * Selected used to populate the form when editing a folder.
  */
 @Composable
 fun FolderFormDialog(
-    onCancel: () -> Unit,
-    onConfirm: (Folder) -> Unit,
     modifier: Modifier = Modifier,
     title: String = "",
-    selected: Folder? = null,
-    viewModel: FolderFormViewModel = viewModel(factory = AppViewModelProvider.Factory)
+    uiState: FolderFormUiState,
+    onValueChange: (FolderFormUiState) -> Unit,
+    onCancel: () -> Unit,
+    onConfirm: () -> Unit,
 ) {
-    val uiState = viewModel.folderFormUiState
-
-    //
-    LaunchedEffect(selected) {
-        viewModel.loadFolder(selected)
-    }
-
     AlertDialog(
         onDismissRequest = { onCancel() },
         containerColor = MaterialTheme.colorScheme.surface,
@@ -45,14 +36,13 @@ fun FolderFormDialog(
         text = {
             FolderInputForm(
                 uiState = uiState,
-                onValueChange = viewModel::updateUiState
+                onValueChange = onValueChange
             )
         },
         modifier = modifier,
         dismissButton = {
             TextButton(onClick = {
                 onCancel()
-                viewModel.resetUiState()
             }) {
                 Text(stringResource(R.string.cancel))
             }
@@ -60,8 +50,7 @@ fun FolderFormDialog(
         confirmButton = {
             TextButton(
                 onClick = {
-                    viewModel.resetUiState()
-                    onConfirm(uiState.toFolder())
+                    onConfirm()
                 },
                 enabled = uiState.isEntryValid
             ) {
@@ -76,13 +65,13 @@ fun FolderInputForm(
     uiState: FolderFormUiState,
     onValueChange: (FolderFormUiState) -> Unit,
 ) {
-    val isError = !uiState.isEntryValid && uiState.title.isNotBlank()
+    val isDescriptionOverLimit = uiState.description.length > DESCRIPTION_MAX_LENGTH
     Column {
         OutlinedTextField(
             value = uiState.title,
             onValueChange = { onValueChange(uiState.copy(title = it)) },
             label = {
-                if (isError) {
+                if (uiState.isTitleError) {
                     Text(
                         text = stringResource(R.string.folder_title_exists),
                         color = MaterialTheme.colorScheme.error
@@ -92,16 +81,21 @@ fun FolderInputForm(
                 }
             },
             singleLine = true,
-            isError = isError,
+            isError = uiState.isTitleError,
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(8.dp))
         OutlinedTextField(
             value = uiState.description,
             onValueChange = { onValueChange(uiState.copy(description = it)) },
-            label = { Text(stringResource(R.string.description)) },
+            label = {
+                if (isDescriptionOverLimit) {
+                    Text("Max: $DESCRIPTION_MAX_LENGTH chars")
+                } else Text (stringResource(R.string.description))
+            },
             placeholder = { Text(stringResource(R.string.description_placeholder)) },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            isError = isDescriptionOverLimit,
         )
     }
 }
