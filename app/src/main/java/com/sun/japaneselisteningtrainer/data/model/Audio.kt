@@ -1,6 +1,5 @@
 package com.sun.japaneselisteningtrainer.data.model
 
-
 data class Audio(
     val id: Int = 0,
     val title: String = "",
@@ -13,15 +12,11 @@ data class Audio(
     val listenTimes: Int = 0,
     val createdAt: Long = 0
 ) {
-    constructor(id: Int, title: String) : this(id,
-        title,
-        0,
-        "",
-        "",
-        "",
-        false,
-        false,
-        0,
-        0
-    )
+    val formatCreatedAt: String
+        get() = formatDateTime(createdAt)
+}
+
+fun formatDateTime(millis: Long): String {
+    val sdf = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault())
+    return sdf.format(java.util.Date(millis))
 }

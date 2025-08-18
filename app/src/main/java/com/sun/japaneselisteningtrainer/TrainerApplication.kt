@@ -15,4 +15,5 @@ class TrainerApplication : Application() {
         super.onCreate()
         container = MockAppDataContainer(this)
     }
+
 }
