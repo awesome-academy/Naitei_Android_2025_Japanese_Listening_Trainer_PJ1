@@ -62,17 +62,9 @@ fun HomeScreen(
                .padding(innerPadding)
                .fillMaxSize()
        ) {
-           var savedFileUri by remember { mutableStateOf<Uri?>(null) }
-           AudioFilePicker(
-               onFileSelected = { uri ->
-                   coroutineScope.launch {
-                       savedFileUri = homeViewModel.saveAudioToStorage(uri)
-                   }
-               }
-           )
-           if (savedFileUri != null) {
-               Text(text = savedFileUri.toString())
-           }
+            for (audio in homeUiState.audioList) {
+                Text(text = audio.title + " - " + audio.filePath)
+            }
        }
     }
 }

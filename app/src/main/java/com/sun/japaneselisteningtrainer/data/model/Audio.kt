@@ -10,5 +10,13 @@ data class Audio(
     val isSuspended: Boolean = false,
     val isFavorite: Boolean = false,
     val listenTimes: Int = 0,
-    val createdAt: String = ""
-)
+    val createdAt: Long = 0
+) {
+    val formatCreatedAt: String
+        get() = formatDateTime(createdAt)
+}
+
+fun formatDateTime(millis: Long): String {
+    val sdf = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault())
+    return sdf.format(java.util.Date(millis))
+}

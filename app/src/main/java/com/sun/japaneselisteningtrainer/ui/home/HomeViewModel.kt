@@ -14,15 +14,7 @@ import kotlinx.coroutines.flow.stateIn
 
 class HomeViewModel(
     val audioRepository: AudioRepository,
-    val audioFileStorage: AudioFileStorage
 ) : ViewModel() {
-    /**
-     * TODO: Use for test, please write again
-     */
-    suspend fun saveAudioToStorage(uri: Uri) : Uri {
-       return  audioFileStorage.save(uri)
-    }
-
     val uiState: StateFlow<HomeUiState> =
         audioRepository.getAllAudioStream().map { HomeUiState(it) }
             .stateIn(

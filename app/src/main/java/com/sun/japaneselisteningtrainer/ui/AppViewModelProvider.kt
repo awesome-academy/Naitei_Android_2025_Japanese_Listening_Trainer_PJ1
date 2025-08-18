@@ -35,7 +35,6 @@ object AppViewModelProvider {
         initializer {
             HomeViewModel(
                 audioRepository = trainerApplication().container.audioRepository,
-                audioFileStorage = trainerApplication().container.audioFileStorage
             )
         }
 

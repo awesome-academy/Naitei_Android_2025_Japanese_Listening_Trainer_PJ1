@@ -18,27 +18,25 @@ import com.sun.japaneselisteningtrainer.data.storage.ExternalAudioFileStorage
 interface AppContainer {
     val audioRepository: AudioRepository
     val folderRepository: FolderRepository
-    val audioFileStorage: AudioFileStorage
 }
 
 /**
  * [AppContainer] implementation that provides instance of mock repository
  */
 class MockAppDataContainer(private val context: Context) : AppContainer {
-
     override val audioRepository: AudioRepository = MockAudioRepository()
     override val folderRepository: FolderRepository = MockFolderRepository()
-    override val audioFileStorage: AudioFileStorage = ExternalAudioFileStorage(context)
 }
 
 class AppDataContainer(private val context: Context) : AppContainer {
-    val dbHelper = JLTDbHelper(context)
+    private val dbHelper = JLTDbHelper(context)
+    private val audioFileStorage: AudioFileStorage = ExternalAudioFileStorage(context)
 
     override val audioRepository: AudioRepository by lazy {
-        LocalAudioRepository(JLTDbHelper(context))
+        LocalAudioRepository(dbHelper, audioFileStorage)
     }
+
     override val folderRepository: FolderRepository by lazy {
-        LocalFolderRepository(JLTDbHelper(context))
+        LocalFolderRepository(dbHelper)
     }
-    override val audioFileStorage: AudioFileStorage = ExternalAudioFileStorage(context)
 }
