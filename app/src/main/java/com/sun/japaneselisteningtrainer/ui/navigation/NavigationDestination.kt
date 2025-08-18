@@ -1,5 +1,6 @@
 package com.sun.japaneselisteningtrainer.ui.navigation
 
+
 interface NavigationDestination {
     /**
      * Unique name to define the path for a composable
@@ -9,5 +10,5 @@ interface NavigationDestination {
     /**
      * String resource id to that contains title to be displayed for the screen.
      */
-    val titleRes: Int
+    val titleRes: Int?
 }
