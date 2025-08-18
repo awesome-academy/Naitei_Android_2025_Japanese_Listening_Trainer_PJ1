@@ -11,19 +11,18 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import java.io.File
 
 class HomeViewModel(
     val audioRepository: AudioRepository,
     val audioFileStorage: AudioFileStorage
 ) : ViewModel() {
-    suspend fun saveAudioToStorage(filename: String, uri: Uri) : Uri {
+    /**
+     * TODO: Use for test, please write again
+     */
+    suspend fun saveAudioToStorage(uri: Uri) : Uri {
        return  audioFileStorage.save(uri)
     }
 
-    suspend fun getAudioFromStorage(filename: String): File? {
-        return audioFileStorage.get(filename)
-    }
     val uiState: StateFlow<HomeUiState> =
         audioRepository.getAllAudioStream().map { HomeUiState(it) }
             .stateIn(

@@ -2,7 +2,6 @@ package com.sun.japaneselisteningtrainer.data.storage
 
 import android.net.Uri
 import java.io.File
-import java.io.InputStream
 
 interface AudioFileStorage {
     /**

@@ -48,14 +48,19 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.sun.japaneselisteningtrainer.ui.audio.entry.AudioEntryDestination
 import com.sun.japaneselisteningtrainer.ui.audio.entry.AudioEntryScreen
+import com.sun.japaneselisteningtrainer.ui.audio.player.MusicPlayerScreen
+import com.sun.japaneselisteningtrainer.ui.audio.player.MusicPlayerDestination
 import com.sun.japaneselisteningtrainer.ui.home.HomeDestination
 import com.sun.japaneselisteningtrainer.ui.home.HomeScreen
 import com.sun.japaneselisteningtrainer.ui.navigation.NavItem.Companion.items
+import com.sun.japaneselisteningtrainer.ui.theme.JapaneseListeningTrainerTheme
 
 
 /**
@@ -84,6 +89,18 @@ fun TrainerNavHost(
                 onNavigationUp = {
                     navController.navigateUp()
                 }
+            )
+        }
+        composable(
+            route = MusicPlayerDestination.routeWithArgs,
+            arguments = listOf(navArgument(MusicPlayerDestination.audioIdArg) {
+                type = NavType.IntType
+            })
+        ){
+            MusicPlayerScreen(
+                modifier = Modifier,
+                onNavigationBack = { navController.navigateUp() },
+                onEditAudio = { navController.navigate(AudioEntryDestination.route) }
             )
         }
     }
@@ -175,6 +192,8 @@ fun TrainerNavigationBarItem(
 @Preview
 @Composable
 fun TrainerNavigationBarPreview() {
-    val navController = rememberNavController()
-    TrainerNavigationBar(navController = navController)
+    JapaneseListeningTrainerTheme{
+        val navController = rememberNavController()
+        TrainerNavigationBar(navController = navController)
+    }
 }

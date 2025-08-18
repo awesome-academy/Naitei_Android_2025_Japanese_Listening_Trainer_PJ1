@@ -1,16 +1,10 @@
 package com.sun.japaneselisteningtrainer.ui.home
 
 import android.net.Uri
-import android.widget.Toast
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
@@ -23,18 +17,16 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.sun.japaneselisteningtrainer.R
 import com.sun.japaneselisteningtrainer.TrainerTopAppBar
 import com.sun.japaneselisteningtrainer.ui.AppViewModelProvider
-import com.sun.japaneselisteningtrainer.R
 import com.sun.japaneselisteningtrainer.ui.AudioFilePicker
 import com.sun.japaneselisteningtrainer.ui.navigation.NavigationDestination
+import com.sun.japaneselisteningtrainer.ui.theme.JapaneseListeningTrainerTheme
 import kotlinx.coroutines.launch
-import kotlin.io.path.fileVisitor
 
 
 object HomeDestination : NavigationDestination {
@@ -51,7 +43,7 @@ fun HomeScreen(
 ) {
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     val homeUiState by homeViewModel.uiState.collectAsState()
-    val couroutineScope = rememberCoroutineScope()
+    val coroutineScope = rememberCoroutineScope()
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
@@ -73,8 +65,8 @@ fun HomeScreen(
            var savedFileUri by remember { mutableStateOf<Uri?>(null) }
            AudioFilePicker(
                onFileSelected = { uri ->
-                   couroutineScope.launch {
-                       savedFileUri = homeViewModel.saveAudioToStorage("filename", uri)
+                   coroutineScope.launch {
+                       savedFileUri = homeViewModel.saveAudioToStorage(uri)
                    }
                }
            )
@@ -88,7 +80,9 @@ fun HomeScreen(
 @Preview
 @Composable
 fun HomeScreenPreview() {
-    HomeScreen(
-        navigationBar = {}
-    )
+    JapaneseListeningTrainerTheme{
+        HomeScreen(
+            navigationBar = {}
+        )
+    }
 }
