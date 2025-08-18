@@ -108,4 +108,3 @@ fun TrainerTopAppBarPreview() {
         canNavigateBack = false,
     )
 }
-

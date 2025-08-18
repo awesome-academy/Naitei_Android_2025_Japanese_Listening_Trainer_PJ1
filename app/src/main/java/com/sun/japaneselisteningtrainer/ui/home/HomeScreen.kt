@@ -33,8 +33,8 @@ import com.sun.japaneselisteningtrainer.ui.AppViewModelProvider
 import com.sun.japaneselisteningtrainer.R
 import com.sun.japaneselisteningtrainer.ui.AudioFilePicker
 import com.sun.japaneselisteningtrainer.ui.navigation.NavigationDestination
+import com.sun.japaneselisteningtrainer.ui.theme.JapaneseListeningTrainerTheme
 import kotlinx.coroutines.launch
-import kotlin.io.path.fileVisitor
 
 
 object HomeDestination : NavigationDestination {
@@ -88,7 +88,9 @@ fun HomeScreen(
 @Preview
 @Composable
 fun HomeScreenPreview() {
-    HomeScreen(
-        navigationBar = {}
-    )
+    JapaneseListeningTrainerTheme{
+        HomeScreen(
+            navigationBar = {}
+        )
+    }
 }
