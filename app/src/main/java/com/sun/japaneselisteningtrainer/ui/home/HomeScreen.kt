@@ -199,7 +199,7 @@ fun FilterBar(
 }
 
 @Composable
-fun FilterButton( //test
+fun FilterButton(
     text: String,
     isSelected: Boolean,
     onClick: () -> Unit
