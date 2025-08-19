@@ -124,7 +124,7 @@ fun TranscriptContainer(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit
 ) {
-    val thresholdPx = SWIPE_THRESHOLD_PX
+    val thresholdPx = 40f
     Box(
         modifier = modifier.pointerInput(thresholdPx) {
             var toggleTriggered = false
