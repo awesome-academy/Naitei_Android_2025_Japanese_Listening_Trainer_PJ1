@@ -13,15 +13,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material.icons.filled.SkipNext
+import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -83,7 +82,9 @@ fun HomeScreen(
                             if (homeUiState.isPlaying) homeViewModel.pauseAudio()
                             else homeViewModel.playAudio(it)
                         },
-                        onStop = { homeViewModel.stopAudio() }
+                        onPrevious = { homeViewModel.playPrevious() },
+                        onNext = { homeViewModel.playNext() },
+                        onFavorite = { homeViewModel.toggleFavorite(it) }
                     )
                 }
                 navigationBar()
@@ -151,7 +152,9 @@ fun MiniAudioPlayer(
     audioTitle: String,
     isPlaying: Boolean,
     onPlayPause: () -> Unit,
-    onStop: () -> Unit
+    onPrevious: () -> Unit,
+    onNext: () -> Unit,
+    onFavorite: () -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -165,6 +168,15 @@ fun MiniAudioPlayer(
             color = Color.Black,
             modifier = Modifier.weight(1f)
         )
+
+        IconButton(onClick = onPrevious) {
+            Icon(
+                imageVector = Icons.Default.SkipPrevious,
+                contentDescription = "Previous",
+                tint = MaterialTheme.colorScheme.onSecondaryContainer
+            )
+        }
+
         IconButton(onClick = onPlayPause) {
             Icon(
                 imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
@@ -172,15 +184,26 @@ fun MiniAudioPlayer(
                 tint = MaterialTheme.colorScheme.onSecondaryContainer
             )
         }
-        IconButton(onClick = onStop) {
+
+        IconButton(onClick = onNext) {
             Icon(
-                imageVector = Icons.Default.Stop,
-                contentDescription = "Stop",
+                imageVector = Icons.Default.SkipNext,
+                contentDescription = "Next",
+                tint = MaterialTheme.colorScheme.onSecondaryContainer
+            )
+        }
+
+        IconButton(onClick = onFavorite) {
+            Icon(
+                imageVector = Icons.Default.FavoriteBorder,
+                contentDescription = "Favorite",
                 tint = MaterialTheme.colorScheme.onSecondaryContainer
             )
         }
     }
 }
+
+
 
 @Composable
 fun FilterBar(

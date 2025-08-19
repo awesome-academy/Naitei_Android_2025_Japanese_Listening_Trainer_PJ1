@@ -1,16 +1,13 @@
 package com.sun.japaneselisteningtrainer.ui.home
 
-import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sun.japaneselisteningtrainer.data.model.Audio
 import com.sun.japaneselisteningtrainer.data.repository.AudioRepository
-import com.sun.japaneselisteningtrainer.data.storage.AudioFileStorage
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 
 enum class AudioFilterType {
@@ -72,6 +69,29 @@ class HomeViewModel(
     fun stopAudio() {
         _currentAudio.value = null
         _isPlaying.value = false
+    }
+
+    fun playPrevious() {
+        val list = uiState.value.audioList
+        val current = _currentAudio.value ?: return
+        val currentIndex = list.indexOf(current)
+        if (currentIndex > 0) {
+            playAudio(list[currentIndex - 1])
+        }
+    }
+
+    fun playNext() {
+        val list = uiState.value.audioList
+        val current = _currentAudio.value ?: return
+        val currentIndex = list.indexOf(current)
+        if (currentIndex >= 0 && currentIndex < list.lastIndex) {
+            playAudio(list[currentIndex + 1])
+        }
+    }
+
+    fun toggleFavorite(audio: Audio) {
+        // TODO: sau này cập nhật DB
+        println("Toggle favorite for: ${audio.title}")
     }
 
     companion object {
