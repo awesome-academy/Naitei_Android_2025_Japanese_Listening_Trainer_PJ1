@@ -58,6 +58,8 @@ import com.sun.japaneselisteningtrainer.ui.audio.player.MusicPlayerDestination
 import com.sun.japaneselisteningtrainer.ui.audio.player.MusicPlayerScreen
 import com.sun.japaneselisteningtrainer.ui.folder.FolderListDestination
 import com.sun.japaneselisteningtrainer.ui.folder.FolderListScreen
+import com.sun.japaneselisteningtrainer.ui.folder.audiolists.FolderAudioListDestination
+import com.sun.japaneselisteningtrainer.ui.folder.audiolists.FolderAudioListScreen
 import com.sun.japaneselisteningtrainer.ui.home.HomeDestination
 import com.sun.japaneselisteningtrainer.ui.home.HomeScreen
 import com.sun.japaneselisteningtrainer.ui.navigation.NavItem.Add
@@ -124,6 +126,24 @@ fun TrainerNavHost(
         }
         composable(route = FolderListDestination.route) {
             FolderListScreen(
+                navigateBar = {
+                    TrainerNavigationBar(
+                        selectedItem = Folder,
+                        navController = navController
+                    )
+                },
+                navigateToFolderAudioList = {
+                    navController.navigate("${FolderAudioListDestination.route}/$it")
+                }
+            )
+        }
+        composable(
+            route = FolderAudioListDestination.routeWithArgs,
+            arguments = listOf(navArgument(FolderAudioListDestination.folderIdArg) {
+                type = NavType.IntType
+            })
+        ) {
+            FolderAudioListScreen(
                 navigateBar = {
                     TrainerNavigationBar(
                         selectedItem = Folder,

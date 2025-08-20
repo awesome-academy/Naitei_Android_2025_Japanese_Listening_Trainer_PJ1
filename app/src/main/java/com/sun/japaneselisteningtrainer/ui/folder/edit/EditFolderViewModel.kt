@@ -8,8 +8,8 @@ import androidx.lifecycle.viewModelScope
 import com.sun.japaneselisteningtrainer.data.folder.FolderRepository
 import com.sun.japaneselisteningtrainer.data.model.Folder
 import com.sun.japaneselisteningtrainer.ui.folder.components.DESCRIPTION_MAX_LENGTH
-import com.sun.japaneselisteningtrainer.ui.folder.components.FolderFormDialog.FolderFormUiState
-import com.sun.japaneselisteningtrainer.ui.folder.components.FolderFormDialog.toFolderFormUiState
+import com.sun.japaneselisteningtrainer.ui.folder.components.FolderFormUiState
+import com.sun.japaneselisteningtrainer.ui.folder.components.toFolderFormUiState
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 

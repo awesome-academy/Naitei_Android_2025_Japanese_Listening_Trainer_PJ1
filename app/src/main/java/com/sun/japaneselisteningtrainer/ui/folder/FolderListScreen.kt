@@ -30,7 +30,6 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -59,8 +58,6 @@ import com.sun.japaneselisteningtrainer.ui.components.MenuItem
 import com.sun.japaneselisteningtrainer.ui.folder.create.CreateFolderDialog
 import com.sun.japaneselisteningtrainer.ui.folder.edit.EditFolderDialog
 import com.sun.japaneselisteningtrainer.ui.navigation.NavigationDestination
-import com.sun.japaneselisteningtrainer.ui.navigation.TrainerNavigationBarPreview
-import com.sun.japaneselisteningtrainer.ui.theme.JapaneseListeningTrainerTheme
 import kotlinx.coroutines.launch
 
 
@@ -74,7 +71,8 @@ object FolderListDestination : NavigationDestination {
 fun FolderListScreen(
     modifier: Modifier = Modifier,
     navigateBar: @Composable () -> Unit = {},
-    viewModel: FolderListViewModel = viewModel(factory = AppViewModelProvider.Factory)
+    viewModel: FolderListViewModel = viewModel(factory = AppViewModelProvider.Factory),
+    navigateToFolderAudioList: (Int) -> Unit,
 ) {
     val uiState = viewModel.folderListUiState
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
@@ -109,7 +107,7 @@ fun FolderListScreen(
             items(uiState.folderList, key = { it.id }) {
                 FolderItem(
                     folder = it,
-                    onClick = { },
+                    onClick = { navigateToFolderAudioList(it.id) },
                     onLongClick = {
                         viewModel.openFolderMenu(it)
                     },
@@ -267,6 +265,7 @@ fun FolderItem(
                         text = folder.description.take(30) + "...",
                         style = MaterialTheme.typography.bodyLarge,
                     )
+
                     else -> Text(
                         text = folder.description,
                         style = MaterialTheme.typography.bodyLarge,
