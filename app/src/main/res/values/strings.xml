@@ -45,6 +45,7 @@
     <string name="upload_audio">Upload Audio</string>
     <string name="please_add_transcript">Please add a transcript for this audio.</string>
     <string name="null_string" />
+    <string name="New">New</string>
     <string name="edit_audio">Edit Audio</string>
     <string name="update_audio">Update Audio</string>
 </resources>

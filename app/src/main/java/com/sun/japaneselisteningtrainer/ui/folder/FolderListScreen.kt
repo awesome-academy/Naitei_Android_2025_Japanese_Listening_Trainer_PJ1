@@ -257,20 +257,9 @@ fun FolderItem(
             ) {
                 Text(
                     text = folder.name,
-                    style = MaterialTheme.typography.displaySmall,
+                    style = MaterialTheme.typography.displayMedium,
                 )
-                when {
-                    folder.description.isBlank() -> Unit
-                    folder.description.length > 30 -> Text(
-                        text = folder.description.take(30) + "...",
-                        style = MaterialTheme.typography.bodyLarge,
-                    )
-
-                    else -> Text(
-                        text = folder.description,
-                        style = MaterialTheme.typography.bodyLarge,
-                    )
-                }
+                FolderShortDescription(description = folder.description)
             }
             Spacer(Modifier.width(16.dp))
             Box(
@@ -285,6 +274,20 @@ fun FolderItem(
         }
     }
 }
+
+@Composable
+fun FolderShortDescription(
+    modifier: Modifier = Modifier,
+    description: String = "",
+) {
+    if (description.isBlank()) return
+    Text(
+        modifier = modifier,
+        text = if (description.length > 30) "${description.take(30)}..." else description,
+        style = MaterialTheme.typography.bodyLarge,
+    )
+}
+
 
 @Preview
 @Composable

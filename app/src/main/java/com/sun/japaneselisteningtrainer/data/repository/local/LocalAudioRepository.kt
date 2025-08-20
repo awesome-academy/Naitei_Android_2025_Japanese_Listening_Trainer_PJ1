@@ -21,7 +21,7 @@ interface ChangeObserver {
     fun onChanged()
 }
 
-// TODO: Flow ần được đưa vào Dispatcher.IO
+// TODO: Flow cần được đưa vào Dispatcher.IO
 class DbChangeNotifier {
     private val observers = mutableListOf<ChangeObserver>()
 
