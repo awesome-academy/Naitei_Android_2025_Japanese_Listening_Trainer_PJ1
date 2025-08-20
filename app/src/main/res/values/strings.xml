@@ -28,4 +28,8 @@
     <string name="edit">Edit</string>
     <string name="delete">Delete</string>
     <string name="max_chars">Max: 1$d chars</string>
+    <string name="select_folder">Select Folder</string>
+    <string name="search_folder">Search Folder</string>
+    <string name="search">Search</string>
+    <string name="add_folder">Add Folder</string>
 </resources>

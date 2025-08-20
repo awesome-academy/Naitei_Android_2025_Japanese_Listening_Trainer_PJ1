@@ -31,6 +31,9 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -40,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sun.japaneselisteningtrainer.R
 import com.sun.japaneselisteningtrainer.ui.AppViewModelProvider
+import com.sun.japaneselisteningtrainer.ui.folder.components.FolderPicker
 import com.sun.japaneselisteningtrainer.ui.navigation.NavigationDestination
 
 object HomeDestination : NavigationDestination {
@@ -50,12 +54,13 @@ object HomeDestination : NavigationDestination {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    navigateToAudioEntry: () -> Unit,
     modifier: Modifier = Modifier,
     homeViewModel: HomeViewModel = viewModel(factory = AppViewModelProvider.Factory),
     navigationBar: @Composable () -> Unit
 ) {
     val homeUiState by homeViewModel.uiState.collectAsState()
+    var openDialog by remember { mutableStateOf(false) }
+    var selectedFolder by remember { mutableStateOf("") }
 
     Scaffold(
         topBar = {
@@ -91,20 +96,38 @@ fun HomeScreen(
             }
         }
     ) { paddingValues ->
-        LazyColumn(
-            contentPadding = paddingValues,
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxSize()
-        ) {
-            items(homeUiState.audioList) { audio ->
-                AudioCard(
-                    title = audio.title,
-                    imageRes = R.drawable.logo,
-                    onClick = { homeViewModel.playAudio(audio) }
-                )
+        Column(modifier = modifier.padding(paddingValues)) {
+            Button(
+                onClick = { openDialog = true }
+            ) {
+                Text("Open Folder Picker")
             }
+            Text("Selected Folder: $selectedFolder")
+            LazyColumn(
+                contentPadding = paddingValues,
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxSize()
+            ) {
+                items(homeUiState.audioList) { audio ->
+                    AudioCard(
+                        title = audio.title,
+                        imageRes = R.drawable.logo,
+                        onClick = { homeViewModel.playAudio(audio) }
+                    )
+                }
+            }
+        }
+
+        if (openDialog) {
+            FolderPicker(
+                onFolderSelected = {
+                    selectedFolder = it.name
+                    openDialog = false
+                },
+                onDismiss = { openDialog = false }
+            )
         }
     }
 }

@@ -283,6 +283,7 @@ fun AudioController(
     currentAudio: Audio,
     modifier: Modifier = Modifier
 ) {
+    val scope = rememberCoroutineScope()
     Column(
         modifier = modifier,
     ) {

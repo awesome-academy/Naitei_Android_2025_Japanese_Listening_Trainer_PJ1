@@ -25,6 +25,7 @@ import com.sun.japaneselisteningtrainer.TrainerApplication
 import com.sun.japaneselisteningtrainer.ui.audio.entry.AudioEntryViewModel
 import com.sun.japaneselisteningtrainer.ui.folder.FolderListViewModel
 import com.sun.japaneselisteningtrainer.ui.folder.components.FolderFormDialog.FolderFormViewModel
+import com.sun.japaneselisteningtrainer.ui.folder.components.FolderPickerViewModel
 import com.sun.japaneselisteningtrainer.ui.folder.create.CreateFolderViewModel
 import com.sun.japaneselisteningtrainer.ui.folder.edit.EditFolderViewModel
 import com.sun.japaneselisteningtrainer.ui.home.HomeViewModel
@@ -70,6 +71,12 @@ object AppViewModelProvider {
 
         initializer {
             EditFolderViewModel(
+                folderRepository = trainerApplication().container.folderRepository
+            )
+        }
+
+        initializer {
+            FolderPickerViewModel(
                 folderRepository = trainerApplication().container.folderRepository
             )
         }
