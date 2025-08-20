@@ -1,8 +1,26 @@
 package com.sun.japaneselisteningtrainer.ui.folder.audiolists
 
+import android.graphics.Bitmap
+import android.widget.Space
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Autorenew
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -14,16 +32,24 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sun.japaneselisteningtrainer.R
 import com.sun.japaneselisteningtrainer.TrainerTopAppBar
+import com.sun.japaneselisteningtrainer.data.model.Folder
 import com.sun.japaneselisteningtrainer.ui.AppViewModelProvider
 import com.sun.japaneselisteningtrainer.ui.folder.AddButton
 import com.sun.japaneselisteningtrainer.ui.navigation.NavigationDestination
+import com.sun.japaneselisteningtrainer.ui.theme.JapaneseListeningTrainerTheme
 
 object FolderAudioListDestination : NavigationDestination {
     override val route: String = "folders"
@@ -40,6 +66,7 @@ fun FolderAudioListScreen(
     navigateBar: @Composable () -> Unit,
     onNavigateUp: () -> Unit,
 ) {
+    val uiState = viewModel.uiState
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     var createFolderRequired by remember { mutableStateOf(false) }
     val snackBarHostState = remember { SnackbarHostState() }
@@ -68,10 +95,100 @@ fun FolderAudioListScreen(
             SnackbarHost(hostState = snackBarHostState)
         }
     ) { padding ->
-        Box(modifier = Modifier.padding(padding)) {
-            Text(
-                text = "Folder " + viewModel.folderId
+        FolderHeader(modifier.padding(padding), folder = uiState.value.folder!!)
+    }
+}
+
+@Composable
+fun FolderHeader(
+    modifier: Modifier = Modifier,
+    folder: Folder,
+    onStudyClick: () -> Unit = {},
+) {
+    Column(modifier = modifier
+        .fillMaxWidth()
+        .padding(16.dp)) {
+        Row(
+            verticalAlignment = Alignment.Bottom,
+        ) {
+            Thumbnail()
+            Spacer(Modifier.width(10.dp))
+            StudyButton(
+                onClick = onStudyClick
             )
         }
+        Spacer(Modifier.height(20.dp))
+        FolderTitle(
+            modifier = Modifier,
+            title = folder.name
+        )
+        FolderDescription(
+            description = folder.description
+        )
+    }
+}
+
+@Composable
+fun Thumbnail(
+    modifier: Modifier = Modifier,
+    painter: Painter = painterResource(R.drawable.mint_green_folder_with_blossom)
+) {
+    Box(
+        modifier = modifier
+    ) {
+        Image(
+            modifier = Modifier.size(120.dp).offset(y = 14.dp),
+            painter = painter,
+            contentDescription = "",
+        )
+    }
+
+}
+
+@Composable
+fun StudyButton(modifier: Modifier = Modifier, onClick: () -> Unit) {
+    Button(
+        modifier = modifier,
+        onClick = onClick,
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text("Study", style = MaterialTheme.typography.bodyLarge)
+        }
+    }
+}
+
+@Composable
+fun FolderTitle(
+    modifier: Modifier = Modifier,
+    title: String,
+) {
+    Box(modifier = Modifier) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.displayLarge
+        )
+    }
+}
+
+@Composable
+fun FolderDescription(
+    modifier: Modifier = Modifier,
+    description: String,
+) {
+    Box(modifier = Modifier) {
+        Text(
+            text = description,
+            style = MaterialTheme.typography.displaySmall
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun FolderHeaderReview() {
+    JapaneseListeningTrainerTheme {
+        FolderHeader(
+            folder = Folder(1, "Folder", "Description")
+        )
     }
 }
