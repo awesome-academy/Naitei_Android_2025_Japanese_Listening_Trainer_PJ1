@@ -283,6 +283,7 @@ fun AudioController(
     isShuffleEnabled: Boolean,
     modifier: Modifier = Modifier
 ) {
+    val scope = rememberCoroutineScope()
     Column(
         modifier = modifier,
     ) {
