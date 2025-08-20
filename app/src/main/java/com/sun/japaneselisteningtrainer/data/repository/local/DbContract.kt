@@ -5,7 +5,7 @@ import android.provider.BaseColumns
 object JLTContract {
     // Global constants (database name, version)
     const val DATABASE_NAME = "listening_trainer.db"
-    const val DATABASE_VERSION = 1
+    const val DATABASE_VERSION = 2
 
     object Audio : BaseColumns {
         const val TABLE_NAME = "audio"
@@ -13,6 +13,7 @@ object JLTContract {
         const val COLUMN_FOLDER_ID = "folder_id"
         const val COLUMN_TITLE = "title"
         const val COLUMN_FILE_PATH = "file_path"
+        const val COLUMN_DURATION = "duration"
         const val COLUMN_SCRIPT = "script"
         const val COLUMN_TRANSLATE = "translate"
         const val COLUMN_IS_SUSPENDED = "is_suspended"
@@ -34,6 +35,7 @@ object JLTContract {
             "${Audio.COLUMN_FOLDER_ID} INTEGER," +
             "${Audio.COLUMN_TITLE} TEXT UNIQUE," +
             "${Audio.COLUMN_FILE_PATH} TEXT," +
+            "${Audio.COLUMN_DURATION} LONG," +
             "${Audio.COLUMN_SCRIPT} TEXT," +
             "${Audio.COLUMN_TRANSLATE} TEXT," +
             "${Audio.COLUMN_IS_SUSPENDED} INTEGER," +

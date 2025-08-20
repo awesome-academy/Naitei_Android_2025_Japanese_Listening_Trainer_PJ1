@@ -9,7 +9,7 @@ interface AudioFileStorage {
      * Returns the URI to access the saved file.
      * **Should save the URI to the database for later retrieval.**
      */
-    suspend fun save(inputUri: Uri): Uri
+    suspend fun save(inputUri: Uri): AddAudioResult
 
     /**
      * Return [File] for an [uri] pointing to a stored file if it exists.
@@ -28,3 +28,5 @@ interface AudioFileStorage {
      */
     suspend fun delete(uri: Uri): Boolean
 }
+
+data class AddAudioResult(val uri: Uri, val duration: Long)

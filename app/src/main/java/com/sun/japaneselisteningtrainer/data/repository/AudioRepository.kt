@@ -12,3 +12,4 @@ interface AudioRepository {
     fun getAudioStream(id: Int): Flow<Audio?>
     fun getFolderAudiosStream(folderId: Int): Flow<List<Audio>>
 }
+

@@ -211,7 +211,7 @@ fun AudioList(
             .padding(16.dp)
     ) {
         items(audioList) { item ->
-            Text(text = "${item.id} - ${item.title}")
+            Text(text = "${item.id} - ${item.title} - ${item.formatDuration}")
         }
     }
 }

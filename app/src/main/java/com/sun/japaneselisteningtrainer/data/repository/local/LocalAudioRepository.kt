@@ -48,12 +48,15 @@ class LocalAudioRepository(dbHelper: JLTDbHelper, private val audioFileStorage: 
      * Add a new audio to the database with the given audio's source.
      */
     override suspend fun add(audio: Audio, source: Uri) : Int = withContext(Dispatchers.IO) {
-        val filePath = audioFileStorage.save(source).toString()
-        val savedAudio = audio.copy(filePath = filePath, createdAt = System.currentTimeMillis())
+        val metadata = audioFileStorage.save(source)
+        val filePath = metadata.uri.toString()
+        val duration = metadata.duration
+        val savedAudio = audio.copy(filePath = filePath, duration = duration, createdAt = System.currentTimeMillis())
         val values = ContentValues().apply {
             put(JLTContract.Audio.COLUMN_FOLDER_ID, savedAudio.folderId)
             put(JLTContract.Audio.COLUMN_TITLE, savedAudio.title)
             put(JLTContract.Audio.COLUMN_FILE_PATH, savedAudio.filePath)
+            put(JLTContract.Audio.COLUMN_DURATION, savedAudio.duration)
             put(JLTContract.Audio.COLUMN_SCRIPT, savedAudio.script)
             put(JLTContract.Audio.COLUMN_TRANSLATE, savedAudio.translate)
             put(JLTContract.Audio.COLUMN_IS_SUSPENDED, savedAudio.isSuspended)
@@ -78,6 +81,7 @@ class LocalAudioRepository(dbHelper: JLTDbHelper, private val audioFileStorage: 
             put(JLTContract.Audio.COLUMN_FOLDER_ID, audio.folderId)
             put(JLTContract.Audio.COLUMN_TITLE, audio.title)
             put(JLTContract.Audio.COLUMN_FILE_PATH, audio.filePath)
+            put(JLTContract.Audio.COLUMN_DURATION, audio.duration)
             put(JLTContract.Audio.COLUMN_SCRIPT, audio.script)
             put(JLTContract.Audio.COLUMN_TRANSLATE, audio.translate)
             put(JLTContract.Audio.COLUMN_IS_SUSPENDED, audio.isSuspended)
@@ -192,6 +196,8 @@ fun Cursor.toAudio(): Audio {
         cursor.getString(cursor.getColumnIndexOrThrow(JLTContract.Audio.COLUMN_TITLE))
     val filePath =
         cursor.getString(cursor.getColumnIndexOrThrow(JLTContract.Audio.COLUMN_FILE_PATH))
+    val duration =
+        cursor.getLong(cursor.getColumnIndexOrThrow(JLTContract.Audio.COLUMN_DURATION))
     val script =
         cursor.getString(cursor.getColumnIndexOrThrow(JLTContract.Audio.COLUMN_SCRIPT))
     val translate =
@@ -209,6 +215,7 @@ fun Cursor.toAudio(): Audio {
         title,
         folderId,
         filePath,
+        duration,
         script,
         translate,
         isSuspended,
