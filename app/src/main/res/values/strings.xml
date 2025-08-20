@@ -32,4 +32,15 @@
     <string name="search_folder">Search Folder</string>
     <string name="search">Search</string>
     <string name="add_folder">Add Folder</string>
+    <string name="audio_title">Audio Title</string>
+    <string name="audio_script">Audio Script</string>
+    <string name="translation">Translation</string>
+    <string name="translate_auto">Translate automatically</string>
+    <string name="open_folder_picker">Open Folder Picker</string>
+    <string name="selected_folder">Selected Folder: %1$s</string>
+    <string name="save_audio">Save Audio</string>
+    <string name="selected_file">Selected file: %1$s</string>
+    <string name="unknown_file">Unknown</string>
+    <string name="no_file_selected">No file selected</string>
+    <string name="upload_audio">Upload Audio</string>
 </resources>

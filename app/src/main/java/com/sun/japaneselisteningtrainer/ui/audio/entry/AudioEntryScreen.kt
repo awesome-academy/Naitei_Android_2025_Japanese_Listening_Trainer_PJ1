@@ -21,23 +21,36 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.sun.japaneselisteningtrainer.TrainerTopAppBar
 import com.sun.japaneselisteningtrainer.R
 import com.sun.japaneselisteningtrainer.ui.AppViewModelProvider
 import com.sun.japaneselisteningtrainer.ui.folder.components.FolderPicker
 import com.sun.japaneselisteningtrainer.ui.navigation.NavigationDestination
 import kotlinx.coroutines.launch
+import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalContext
 
 object AudioEntryDestination : NavigationDestination {
     override val route = "audio_entry"
     override val titleRes = R.string.audio_entry_title
 }
+
+private const val MAX_TITLE_LENGTH = 100
+private const val MAX_SCRIPT_LENGTH = 1000
+private const val MAX_TRANSLATION_LENGTH = 1000
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -63,16 +76,10 @@ fun AudioEntryScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Add Audio") },
-                navigationIcon = {
-                    IconButton(onClick = { onNavigationUp() }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
-                        )
-                    }
-                }
+            TrainerTopAppBar(
+                title = stringResource(R.string.add_audio),
+                canNavigateBack = true,
+                navigateUp = onNavigationUp
             )
         }
     ) { innerPadding ->
@@ -80,28 +87,42 @@ fun AudioEntryScreen(
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
-                .padding(16.dp),
+                .padding(dimensionResource(R.dimen.dp_16)),
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             CustomTextField(
-                label = "Audio Title",
+                label = stringResource(R.string.audio_title),
                 value = audioForm.title,
-                onValueChange = { audioEntryViewModel.updateForm(audioForm.copy(title = it)) }
+                onValueChange = {
+                    if (it.length <= MAX_TITLE_LENGTH) {
+                        audioEntryViewModel.updateForm(audioForm.copy(title = it))
+                    }
+                }
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(dimensionResource(R.dimen.dp_16)))
+
             CustomTextField(
-                label = "Audio Script",
+                label = stringResource(R.string.audio_script),
                 value = audioForm.script,
-                onValueChange = { audioEntryViewModel.updateForm(audioForm.copy(script = it)) }
+                onValueChange = {
+                    if (it.length <= MAX_SCRIPT_LENGTH) {
+                        audioEntryViewModel.updateForm(audioForm.copy(script = it))
+                    }
+                }
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(dimensionResource(R.dimen.dp_16)))
+
             OutlinedTextField(
                 value = audioForm.translate,
-                onValueChange = { audioEntryViewModel.updateForm(audioForm.copy(translate = it)) },
-                label = { Text("Translation") },
+                onValueChange = {
+                    if (it.length <= MAX_TRANSLATION_LENGTH) {
+                        audioEntryViewModel.updateForm(audioForm.copy(translate = it))
+                    }
+                },
+                label = { Text(stringResource(R.string.translation)) },
                 modifier = Modifier.fillMaxWidth(),
                 trailingIcon = {
                     IconButton(
@@ -111,25 +132,25 @@ fun AudioEntryScreen(
                     ) {
                         Icon(
                             painter = painterResource(id = R.drawable.logoai),
-                            contentDescription = "Translate automatically",
+                            contentDescription = stringResource(R.string.translate_auto),
                             tint = Color.Unspecified,
                         )
                     }
                 }
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(dimensionResource(R.dimen.dp_16)))
             UploadField(
                 fileUri = audioForm.selectedFileUri,
                 onClickUpload = { filePickerLauncher.launch("audio/*") }
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(dimensionResource(R.dimen.dp_20)))
 
             Button(onClick = { openDialog = true }) {
-                Text("Open Folder Picker")
+                Text(stringResource(R.string.open_folder_picker))
             }
-            Text("Selected Folder: $selectedFolder")
+            Text(stringResource(R.string.selected_folder, selectedFolder))
 
             if (openDialog) {
                 FolderPicker(
@@ -142,7 +163,7 @@ fun AudioEntryScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(dimensionResource(R.dimen.dp_20)))
 
             Button(
                 onClick = {
@@ -154,11 +175,12 @@ fun AudioEntryScreen(
                 enabled = uiState.isValid,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Save Audio")
+                Text(stringResource(R.string.save_audio))
             }
         }
     }
 }
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -180,20 +202,28 @@ fun UploadField(
     fileUri: Uri,
     onClickUpload: () -> Unit
 ) {
+    val context = LocalContext.current
+
     Column(modifier = Modifier.fillMaxWidth()) {
         if (fileUri != Uri.EMPTY) {
             Text(
-                text = "Selected file: ${fileUri.lastPathSegment ?: "Unknown"}",
+                text = stringResource(
+                    id = R.string.selected_file,
+                    fileUri.lastPathSegment ?: stringResource(R.string.unknown_file)
+                ),
                 style = MaterialTheme.typography.bodyMedium
             )
         } else {
-            Text("No file selected", style = MaterialTheme.typography.bodyMedium)
+            Text(
+                text = stringResource(R.string.no_file_selected),
+                style = MaterialTheme.typography.bodyMedium
+            )
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(dimensionResource(id = R.dimen.dp_8)))
 
         Button(onClick = onClickUpload) {
-            Text("Upload Audio")
+            Text(text = stringResource(R.string.upload_audio))
         }
     }
 }
