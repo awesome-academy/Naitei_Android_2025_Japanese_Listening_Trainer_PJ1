@@ -11,6 +11,7 @@ import com.sun.japaneselisteningtrainer.data.repository.AudioRepository
 import com.sun.japaneselisteningtrainer.ui.folder.components.AudioItemInfo
 import com.sun.japaneselisteningtrainer.ui.folder.components.toAudioItemInfo
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -53,6 +54,14 @@ class FolderAudioListViewModel(
 
     fun playPause(audioId: Int) {
         updateUiState(uiState.value.copy(playingAudioId = audioId))
+    }
+
+    suspend fun favorite(audioId: Int) {
+        val audio = audioRepository.getAudioStream(audioId).first()
+        if (audio != null) {
+            val newAudio = audio.copy(isFavorite = !audio.isFavorite)
+            audioRepository.update(newAudio)
+        }
     }
 }
 

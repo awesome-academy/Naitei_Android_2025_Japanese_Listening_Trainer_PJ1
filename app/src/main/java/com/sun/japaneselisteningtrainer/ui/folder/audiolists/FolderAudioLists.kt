@@ -58,6 +58,7 @@ import com.sun.japaneselisteningtrainer.ui.folder.components.AudioItem
 import com.sun.japaneselisteningtrainer.ui.folder.components.AudioItemInfo
 import com.sun.japaneselisteningtrainer.ui.navigation.NavigationDestination
 import com.sun.japaneselisteningtrainer.ui.theme.JapaneseListeningTrainerTheme
+import kotlinx.coroutines.launch
 
 object FolderAudioListDestination : NavigationDestination {
     override val route: String = "folders"
@@ -111,8 +112,12 @@ fun FolderAudioListScreen(
             AudioList(
                 playingAudioId = uiState.playingAudioId,
                 audioItemInfoList = uiState.audioItemInfoList,
-                onPlayPause = { viewModel.playPause(it) }
-                onFavorite = { viewModel.favorite(it) }
+                onPlayPause = { viewModel.playPause(it) },
+                onFavorite = {
+                    scope.launch {
+                        viewModel.favorite(it)
+                    }
+                }
             )
         }
     }
@@ -149,7 +154,8 @@ fun FolderHeader(
             Spacer(Modifier.weight(1f))
             Column(
                 modifier = Modifier.fillMaxHeight(),
-                verticalArrangement = Arrangement.Bottom) {
+                verticalArrangement = Arrangement.Bottom
+            ) {
                 StudyButton(
                     onClick = onStudyClick
                 )
@@ -169,7 +175,9 @@ fun Thumbnail(
         modifier = modifier
     ) {
         Image(
-            modifier = Modifier.size(120.dp).offset(y = 14.dp),
+            modifier = Modifier
+                .size(120.dp)
+                .offset(y = 14.dp),
             painter = painter,
             contentDescription = "",
         )
@@ -246,7 +254,7 @@ fun AudioList(
                 info = item,
                 onClick = { /*TODO*/ },
                 onLongClick = { /*TODO*/ },
-                onFavorite = { /*TODO*/ },
+                onFavorite = { onFavorite(item.id) },
                 onPlayPause = { onPlayPause(item.id) }
             )
         }
