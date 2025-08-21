@@ -6,11 +6,12 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sun.japaneselisteningtrainer.data.folder.FolderRepository
-import com.sun.japaneselisteningtrainer.data.model.Audio
 import com.sun.japaneselisteningtrainer.data.model.Folder
 import com.sun.japaneselisteningtrainer.data.repository.AudioRepository
+import com.sun.japaneselisteningtrainer.ui.folder.components.AudioItemInfo
+import com.sun.japaneselisteningtrainer.ui.folder.components.toAudioItemInfo
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class FolderAudioListViewModel(
@@ -34,17 +35,27 @@ class FolderAudioListViewModel(
         }
 
         viewModelScope.launch {
-            audioRepository.getFolderAudiosStream(folderId).onEach {
-                Log.d("MyTag", "audioList: $it")
-            }.collect {
-                uiState.value = uiState.value.copy(audioList = it)
+            audioRepository.getFolderAudiosStream(folderId).map {
+                it.map { audio ->
+                    audio.toAudioItemInfo()
+                }
+            }.collect { audioItemInfoList ->
+                uiState.value = uiState.value.copy(audioItemInfoList = audioItemInfoList)
             }
         }
     }
 
+    private fun updateUiState(newUiState: FolderAudioListUiState) {
+        uiState.value = newUiState
+    }
+
+    fun playPause(audioId: Int) {
+        updateUiState(uiState.value.copy(playingAudioId = audioId))
+    }
 }
 
 data class FolderAudioListUiState(
     val folder: Folder? = null,
-    val audioList: List<Audio> = listOf()
+    val audioItemInfoList: List<AudioItemInfo> = listOf(),
+    val playingAudioId : Int = -1,
 )

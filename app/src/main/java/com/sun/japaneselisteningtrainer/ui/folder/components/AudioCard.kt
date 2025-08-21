@@ -1,6 +1,5 @@
 package com.sun.japaneselisteningtrainer.ui.folder.components
 
-import android.net.Uri
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Column
@@ -10,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeightIn
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
@@ -38,9 +36,11 @@ import com.sun.japaneselisteningtrainer.ui.theme.JapaneseListeningTrainerTheme
 @Composable
 fun AudioItem(
     modifier: Modifier = Modifier,
-    info: AudioCardInfo,
+    info: AudioItemInfo,
+    isPlaying: Boolean = false,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
+    onPlayPause: () -> Unit,
     onFavorite: () -> Unit,
 ) {
     Card(
@@ -61,7 +61,7 @@ fun AudioItem(
             verticalAlignment = Alignment.CenterVertically
         ) {
             PlayPauseButton(
-                isPlaying = info.isPlaying,
+                isPlaying = isPlaying,
                 onClick = onClick,
             )
             Spacer(Modifier.width(6.dp))
@@ -126,37 +126,36 @@ fun AudioItemPreview() {
     JapaneseListeningTrainerTheme {
         AudioItem(
             modifier = Modifier.fillMaxWidth(),
-            info = AudioCardInfo(
+            isPlaying = false,
+            info = AudioItemInfo(
                 id = 1,
                 title = "Title",
                 isFavorite = true,
                 isNew = true,
-                isPlaying = true,
                 duration = "4:22"
             ),
             onClick = { },
             onLongClick = { },
-            onFavorite = { }
+            onFavorite = { },
+            onPlayPause = { }
         )
     }
 }
 
-data class AudioCardInfo(
+data class AudioItemInfo(
     val id: Int = 0,
     val title: String = "",
     val isFavorite: Boolean = false,
     val isNew: Boolean = true,
-    val isPlaying: Boolean = false,
     val duration: String = "0:00"
 )
 
-fun Audio.toAudioCardInfo(): AudioCardInfo {
-    return AudioCardInfo(
+fun Audio.toAudioItemInfo(): AudioItemInfo {
+    return AudioItemInfo(
         id = id,
         title = title,
         isFavorite = isFavorite,
         isNew = (listenTimes == 0),
-        isPlaying = false,
         duration = formatDuration,
     )
 }

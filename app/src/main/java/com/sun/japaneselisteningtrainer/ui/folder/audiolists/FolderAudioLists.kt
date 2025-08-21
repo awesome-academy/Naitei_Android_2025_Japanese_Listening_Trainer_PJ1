@@ -37,9 +37,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.focusModifier
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -51,6 +53,9 @@ import com.sun.japaneselisteningtrainer.data.model.Audio
 import com.sun.japaneselisteningtrainer.data.model.Folder
 import com.sun.japaneselisteningtrainer.ui.AppViewModelProvider
 import com.sun.japaneselisteningtrainer.ui.folder.AddButton
+import com.sun.japaneselisteningtrainer.ui.folder.components.AudioItem
+import com.sun.japaneselisteningtrainer.ui.folder.components.AudioItemInfo
+import com.sun.japaneselisteningtrainer.ui.folder.components.toAudioItemInfo
 import com.sun.japaneselisteningtrainer.ui.navigation.NavigationDestination
 import com.sun.japaneselisteningtrainer.ui.theme.JapaneseListeningTrainerTheme
 
@@ -101,7 +106,9 @@ fun FolderAudioListScreen(
         Column(modifier = Modifier.padding(padding)) {
             FolderHeader(modifier.border(1.dp, MaterialTheme.colorScheme.outline), folder = uiState.folder!!)
             AudioList(
-                audioList = uiState.audioList
+                playingAudioId = uiState.playingAudioId,
+                audioItemInfoList = uiState.audioItemInfoList,
+                onPlayPause = { viewModel.playPause(it) }
             )
         }
     }
@@ -204,14 +211,23 @@ fun FolderHeaderReview() {
 @Composable
 fun AudioList(
     modifier: Modifier = Modifier,
-    audioList: List<Audio>,
+    playingAudioId: Int,
+    audioItemInfoList: List<AudioItemInfo>,
+    onPlayPause: (audioId: Int) -> Unit = {},
 ) {
     LazyColumn(
         modifier = modifier
-            .padding(16.dp)
     ) {
-        items(audioList) { item ->
-            Text(text = "${item.id} - ${item.title} - ${item.formatDuration}")
+        items(audioItemInfoList, key = { item -> item.id }) { item ->
+            AudioItem(
+                modifier = Modifier.padding(dimensionResource(R.dimen.dp_8)),
+                isPlaying = item.id == playingAudioId,
+                info = item,
+                onClick = { /*TODO*/ },
+                onLongClick = { /*TODO*/ },
+                onFavorite = { /*TODO*/ },
+                onPlayPause = { onPlayPause(item.id) }
+            )
         }
     }
 }
