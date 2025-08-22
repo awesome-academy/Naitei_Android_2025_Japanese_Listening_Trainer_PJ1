@@ -13,11 +13,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
+
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -83,13 +85,15 @@ fun HomeScreen(
                     MiniAudioPlayer(
                         audioTitle = it.title,
                         isPlaying = homeUiState.isPlaying,
+                        isFavorite = it.isFavorite,
                         onPlayPause = {
                             if (homeUiState.isPlaying) homeViewModel.pauseAudio()
                             else homeViewModel.playAudio(it)
                         },
                         onPrevious = { homeViewModel.playPrevious() },
                         onNext = { homeViewModel.playNext() },
-                        onFavorite = { homeViewModel.toggleFavorite(it) }
+                        onFavorite = { homeViewModel.toggleFavorite(it) },
+                        onClickPlayer = { navigateToMusicPlayer(it.id) }
                     )
                 }
                 navigationBar()
@@ -107,8 +111,12 @@ fun HomeScreen(
                 AudioCard(
                     title = audio.title,
                     imageRes = R.drawable.logo,
+                    isFavorite = audio.isFavorite,
                     onClick = {
                         navigateToMusicPlayer(audio.id)
+                    },
+                    onFavoriteClick = {
+                        homeViewModel.toggleFavorite(audio)
                     }
                 )
             }
@@ -120,7 +128,9 @@ fun HomeScreen(
 fun AudioCard(
     title: String,
     imageRes: Int,
-    onClick: () -> Unit
+    isFavorite: Boolean = false,
+    onClick: () -> Unit,
+    onFavoriteClick: () -> Unit = {}
 ) {
     Row(
         modifier = Modifier
@@ -146,11 +156,13 @@ fun AudioCard(
             style = MaterialTheme.typography.bodyLarge
         )
 
-        Icon(
-            imageVector = Icons.Default.FavoriteBorder,
-            contentDescription = "Favorite",
-            tint = MaterialTheme.colorScheme.primary
-        )
+        IconButton(onClick = onFavoriteClick) {
+            Icon(
+                imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                contentDescription = "Favorite",
+                tint = if (isFavorite) Color.Red else MaterialTheme.colorScheme.primary
+            )
+        }
     }
 }
 
@@ -158,15 +170,18 @@ fun AudioCard(
 fun MiniAudioPlayer(
     audioTitle: String,
     isPlaying: Boolean,
+    isFavorite: Boolean = false,
     onPlayPause: () -> Unit,
     onPrevious: () -> Unit,
     onNext: () -> Unit,
-    onFavorite: () -> Unit
+    onFavorite: () -> Unit,
+    onClickPlayer: () -> Unit = {}
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.secondaryContainer)
+            .clickable { onClickPlayer() }
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -202,9 +217,9 @@ fun MiniAudioPlayer(
 
         IconButton(onClick = onFavorite) {
             Icon(
-                imageVector = Icons.Default.FavoriteBorder,
+                imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                 contentDescription = "Favorite",
-                tint = MaterialTheme.colorScheme.onSecondaryContainer
+                tint = if (isFavorite) Color.Red else MaterialTheme.colorScheme.onSecondaryContainer
             )
         }
     }

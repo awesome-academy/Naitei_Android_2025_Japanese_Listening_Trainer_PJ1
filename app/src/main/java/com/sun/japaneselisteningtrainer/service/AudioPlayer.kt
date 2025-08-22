@@ -38,6 +38,7 @@ class AudioPlayer(private val context: Context) {
         fun onPositionChanged(position: Long, duration: Long)
         fun onAudioChanged(audio: Audio?)
         fun onError(error: String)
+        fun onAudioCompleted()
     }
     
     private var callback: AudioPlayerCallback? = null
@@ -138,6 +139,7 @@ class AudioPlayer(private val context: Context) {
             Player.STATE_ENDED -> {
                 _playbackState.value = AudioServiceConstants.STATE_STOPPED
                 callback?.onPositionChanged(0L, getDuration())
+                callback?.onAudioCompleted()
             }
         }
     }

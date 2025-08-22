@@ -41,6 +41,7 @@ object AppViewModelProvider {
         initializer {
             HomeViewModel(
                 audioRepository = trainerApplication().container.audioRepository,
+                audioServiceManager = trainerApplication().container.audioServiceManager
             )
         }
 
@@ -87,7 +88,8 @@ object AppViewModelProvider {
         // Initializer for MusicPlayerViewModel
         initializer {
             MusicPlayerViewModel(
-                audioServiceManager = trainerApplication().container.audioServiceManager
+                audioServiceManager = trainerApplication().container.audioServiceManager,
+                audioRepository = trainerApplication().container.audioRepository
             )
         }
     }

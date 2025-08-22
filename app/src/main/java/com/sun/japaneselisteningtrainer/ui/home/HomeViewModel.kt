@@ -4,11 +4,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sun.japaneselisteningtrainer.data.model.Audio
 import com.sun.japaneselisteningtrainer.data.repository.AudioRepository
+import com.sun.japaneselisteningtrainer.service.AudioServiceManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 enum class AudioFilterType {
     ALL, FAVORITES, RECENT
@@ -18,22 +21,22 @@ data class HomeUiState(
     val audioList: List<Audio> = emptyList(),
     val currentAudio: Audio? = null,
     val isPlaying: Boolean = false,
+    val isShuffleOn: Boolean = false,
     val filterType: AudioFilterType = AudioFilterType.ALL
 )
 
 class HomeViewModel(
-    private val audioRepository: AudioRepository
+    private val audioRepository: AudioRepository,
+    private val audioServiceManager: AudioServiceManager
 ) : ViewModel() {
 
     private val _filterType = MutableStateFlow(AudioFilterType.ALL)
-    private val _currentAudio = MutableStateFlow<Audio?>(null)
-    private val _isPlaying = MutableStateFlow(false)
 
     val uiState: StateFlow<HomeUiState> = combine(
         audioRepository.getAllAudioStream(),
         _filterType,
-        _currentAudio,
-        _isPlaying
+        audioServiceManager.currentAudio,
+        audioServiceManager.isPlaying
     ) { audioList, filterType, currentAudio, isPlaying ->
         val filteredList = when (filterType) {
             AudioFilterType.ALL -> audioList
@@ -45,6 +48,7 @@ class HomeViewModel(
             audioList = filteredList,
             currentAudio = currentAudio,
             isPlaying = isPlaying,
+            isShuffleOn = audioServiceManager.isShuffleEnabled(),
             filterType = filterType
         )
     }.stateIn(
@@ -58,40 +62,31 @@ class HomeViewModel(
     }
 
     fun playAudio(audio: Audio) {
-        _currentAudio.value = audio
-        _isPlaying.value = true
+        viewModelScope.launch {
+            audioServiceManager.loadAndPlayAudio(audio.id)
+        }
     }
 
     fun pauseAudio() {
-        _isPlaying.value = false
-    }
-
-    fun stopAudio() {
-        _currentAudio.value = null
-        _isPlaying.value = false
+        audioServiceManager.togglePlayPause()
     }
 
     fun playPrevious() {
-        val list = uiState.value.audioList
-        val current = _currentAudio.value ?: return
-        val currentIndex = list.indexOf(current)
-        if (currentIndex > 0) {
-            playAudio(list[currentIndex - 1])
-        }
+        audioServiceManager.previousTrack()
     }
 
     fun playNext() {
-        val list = uiState.value.audioList
-        val current = _currentAudio.value ?: return
-        val currentIndex = list.indexOf(current)
-        if (currentIndex >= 0 && currentIndex < list.lastIndex) {
-            playAudio(list[currentIndex + 1])
-        }
+        audioServiceManager.nextTrack()
     }
 
     fun toggleFavorite(audio: Audio) {
-        // TODO: sau này cập nhật DB
-        println("Toggle favorite for: ${audio.title}")
+        viewModelScope.launch {
+            audioServiceManager.toggleFavoriteStatus(audio)
+        }
+    }
+
+    fun toggleShuffle() {
+        audioServiceManager.toggleShuffle()
     }
 
     companion object {

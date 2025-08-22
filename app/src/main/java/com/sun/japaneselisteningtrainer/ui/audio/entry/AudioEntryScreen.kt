@@ -22,6 +22,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,6 +47,14 @@ import androidx.compose.ui.platform.LocalContext
 object AudioEntryDestination : NavigationDestination {
     override val route = "audio_entry"
     override val titleRes = R.string.audio_entry_title
+}
+
+object AudioEditDestination : NavigationDestination {
+    override val route = "audio_edit"
+    override val titleRes = R.string.edit_audio
+    const val audioIdArg = "audioId"
+    val routeWithArgs = "$route/{$audioIdArg}"
+    fun createRoute(audioId: Int) = "$route/$audioId"
 }
 
 private const val MAX_TITLE_LENGTH = 100
@@ -181,6 +190,105 @@ fun AudioEntryScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AudioEditScreen(
+    audioId: Int,
+    navigateBack: () -> Unit,
+    onNavigationUp: () -> Unit,
+    audioEntryViewModel: AudioEntryViewModel = viewModel(factory = AppViewModelProvider.Factory)
+) {
+    val coroutineScope = rememberCoroutineScope()
+    val uiState = audioEntryViewModel.uiState
+    val audioForm = uiState.audioForm
+
+    // Load audio data for editing
+    LaunchedEffect(audioId) {
+        audioEntryViewModel.loadAudioForEdit(audioId)
+    }
+
+    Scaffold(
+        topBar = {
+            TrainerTopAppBar(
+                title = stringResource(R.string.edit_audio),
+                canNavigateBack = true,
+                navigateUp = onNavigationUp
+            )
+        }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize()
+                .padding(dimensionResource(R.dimen.dp_16)),
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            CustomTextField(
+                label = stringResource(R.string.audio_title),
+                value = audioForm.title,
+                onValueChange = {
+                    if (it.length <= MAX_TITLE_LENGTH) {
+                        audioEntryViewModel.updateForm(audioForm.copy(title = it))
+                    }
+                }
+            )
+
+            Spacer(modifier = Modifier.height(dimensionResource(R.dimen.dp_16)))
+
+            CustomTextField(
+                label = stringResource(R.string.audio_script),
+                value = audioForm.script,
+                onValueChange = {
+                    if (it.length <= MAX_SCRIPT_LENGTH) {
+                        audioEntryViewModel.updateForm(audioForm.copy(script = it))
+                    }
+                }
+            )
+
+            Spacer(modifier = Modifier.height(dimensionResource(R.dimen.dp_16)))
+
+            OutlinedTextField(
+                value = audioForm.translate,
+                onValueChange = {
+                    if (it.length <= MAX_TRANSLATION_LENGTH) {
+                        audioEntryViewModel.updateForm(audioForm.copy(translate = it))
+                    }
+                },
+                label = { Text(stringResource(R.string.translation)) },
+                modifier = Modifier.fillMaxWidth(),
+                trailingIcon = {
+                    IconButton(
+                        onClick = {
+                            // TODO: gọi hàm dịch tự động bằng AI
+                        },
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.logoai),
+                            contentDescription = stringResource(R.string.translate_auto),
+                            tint = Color.Unspecified,
+                        )
+                    }
+                }
+            )
+
+            Spacer(modifier = Modifier.height(dimensionResource(R.dimen.dp_20)))
+
+            Button(
+                onClick = {
+                    coroutineScope.launch {
+                        audioEntryViewModel.updateAudio()
+                        navigateBack()
+                    }
+                },
+                enabled = uiState.isValid,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(stringResource(R.string.update_audio))
+            }
+        }
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

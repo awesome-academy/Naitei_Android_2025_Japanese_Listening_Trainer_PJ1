@@ -4,11 +4,13 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sun.japaneselisteningtrainer.data.model.Audio
+import com.sun.japaneselisteningtrainer.data.repository.AudioRepository
 import com.sun.japaneselisteningtrainer.service.AudioServiceManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.SharingStarted
@@ -17,7 +19,8 @@ import kotlinx.coroutines.flow.SharingStarted
  * ViewModel cho MusicPlayerScreen với Dependency Injection
  */
 class MusicPlayerViewModel(
-    private val audioServiceManager: AudioServiceManager
+    private val audioServiceManager: AudioServiceManager,
+    private val audioRepository: AudioRepository
 ) : ViewModel() {
     
     // Expose AudioServiceManager states
@@ -25,7 +28,24 @@ class MusicPlayerViewModel(
     val isPlaying: StateFlow<Boolean> = audioServiceManager.isPlaying
     val currentPosition: StateFlow<Long> = audioServiceManager.currentPosition
     val duration: StateFlow<Long> = audioServiceManager.duration
+    
+    // Simply use service audio - it should be updated when data changes
     val currentAudio: StateFlow<Audio?> = audioServiceManager.currentAudio
+    
+    // Shuffle state as StateFlow
+    private val _isShuffleEnabled = MutableStateFlow(false)
+    val isShuffleEnabled: StateFlow<Boolean> = _isShuffleEnabled.asStateFlow()
+    
+    init {
+        // Sync shuffle state from service
+        viewModelScope.launch {
+            isServiceConnected.collect { connected ->
+                if (connected) {
+                    _isShuffleEnabled.value = audioServiceManager.isShuffleEnabled()
+                }
+            }
+        }
+    }
     
     // Loading states
     private val _isLoadingAudio = MutableStateFlow(false)
@@ -36,22 +56,6 @@ class MusicPlayerViewModel(
     
     // Local UI state để track favorite changes
     private val _localFavoriteOverride = MutableStateFlow<Pair<Int, Boolean>?>(null)
-
-    // Combined currentAudio với local favorite override
-    val currentAudioWithOverride: StateFlow<Audio?> = combine(
-        audioServiceManager.currentAudio,
-        _localFavoriteOverride
-    ) { serviceAudio, favoriteOverride ->
-        if (serviceAudio != null && favoriteOverride != null && favoriteOverride.first == serviceAudio.id) {
-            serviceAudio.copy(isFavorite = favoriteOverride.second)
-        } else {
-            serviceAudio
-        }
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(),
-        initialValue = null
-    )
 
 
 
@@ -110,13 +114,8 @@ class MusicPlayerViewModel(
      */
     fun toggleShuffle() {
         audioServiceManager.toggleShuffle()
-    }
-    
-    /**
-     * Check if shuffle is enabled
-     */
-    fun isShuffleEnabled(): Boolean {
-        return audioServiceManager.isShuffleEnabled()
+        // Update local state
+        _isShuffleEnabled.value = audioServiceManager.isShuffleEnabled()
     }
     
     /**
@@ -167,6 +166,15 @@ class MusicPlayerViewModel(
                 // Nếu database update fail, revert UI
                 _localFavoriteOverride.value = null
             }
+        }
+    }
+    
+    /**
+     * Refresh current audio data from database (call after edit)
+     */
+    fun refreshCurrentAudio() {
+        viewModelScope.launch {
+            audioServiceManager.refreshCurrentAudio()
         }
     }
 

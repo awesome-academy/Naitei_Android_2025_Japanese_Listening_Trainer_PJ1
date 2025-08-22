@@ -51,6 +51,8 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.sun.japaneselisteningtrainer.ui.audio.entry.AudioEntryDestination
 import com.sun.japaneselisteningtrainer.ui.audio.entry.AudioEntryScreen
+import com.sun.japaneselisteningtrainer.ui.audio.entry.AudioEditDestination
+import com.sun.japaneselisteningtrainer.ui.audio.entry.AudioEditScreen
 import com.sun.japaneselisteningtrainer.ui.audio.player.MusicPlayerDestination
 import com.sun.japaneselisteningtrainer.ui.audio.player.MusicPlayerScreen
 import com.sun.japaneselisteningtrainer.ui.folder.FolderListDestination
@@ -140,7 +142,21 @@ fun TrainerNavHost(
                 audioId = audioId,
                 modifier = Modifier,
                 onNavigationBack = { navController.navigateUp() },
-                onEditAudio = { navController.navigate(AudioEntryDestination.route) }
+                onEditAudio = { navController.navigate(AudioEditDestination.createRoute(audioId)) }
+            )
+        }
+
+        composable(
+            route = AudioEditDestination.routeWithArgs,
+            arguments = listOf(navArgument(AudioEditDestination.audioIdArg) {
+                type = NavType.IntType
+            })
+        ) { backStackEntry ->
+            val audioId = backStackEntry.arguments?.getInt(AudioEditDestination.audioIdArg) ?: 1
+            AudioEditScreen(
+                audioId = audioId,
+                navigateBack = { navController.popBackStack() },
+                onNavigationUp = { navController.navigateUp() }
             )
         }
     }

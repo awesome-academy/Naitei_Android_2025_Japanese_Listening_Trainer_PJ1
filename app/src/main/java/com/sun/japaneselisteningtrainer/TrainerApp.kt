@@ -1,5 +1,6 @@
 package com.sun.japaneselisteningtrainer
 
+import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -28,6 +29,9 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.LocalContext
+import com.sun.japaneselisteningtrainer.ui.audio.player.MusicPlayerDestination
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -45,12 +49,28 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.sun.japaneselisteningtrainer.ui.navigation.TrainerNavHost
+import androidx.activity.ComponentActivity
 
 @Composable
 fun TrainerApp(
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
+    notificationIntent: Intent? = null
 ) {
+    // Handle notification navigation
+    LaunchedEffect(notificationIntent) {
+        notificationIntent?.let { intent ->
+            if (intent.getBooleanExtra("navigate_to_audio", false)) {
+                val audioId = intent.getIntExtra("audio_id", -1)
+                if (audioId != -1) {
+                    navController.navigate(MusicPlayerDestination.createRoute(audioId)) {
+                        launchSingleTop = true
+                    }
+                }
+            }
+        }
+    }
+    
     TrainerNavHost(
         navController = navController,
         modifier = modifier

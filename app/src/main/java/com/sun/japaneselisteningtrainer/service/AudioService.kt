@@ -139,6 +139,28 @@ class AudioService : Service(), AudioPlayer.AudioPlayerCallback {
         // Có thể show toast hoặc notification error
     }
     
+    override fun onAudioCompleted() {
+        Log.d(TAG, "Audio completed, checking shuffle mode")
+        if (playlist.size > 1) {
+            if (isShuffleEnabled) {
+                Log.d(TAG, "Shuffle enabled - playing random next audio")
+                // Chọn random audio khác (không phải audio hiện tại)
+                val availableIndices = playlist.indices.filter { it != currentIndex }
+                if (availableIndices.isNotEmpty()) {
+                    currentIndex = availableIndices.random()
+                    audioPlayer.prepareAudio(playlist[currentIndex])
+                    audioPlayer.play()
+                }
+            } else {
+                Log.d(TAG, "Shuffle disabled - playing next audio in order")
+                // Phát audio tiếp theo theo thứ tự
+                currentIndex = (currentIndex + 1) % playlist.size
+                audioPlayer.prepareAudio(playlist[currentIndex])
+                audioPlayer.play()
+            }
+        }
+    }
+    
     // ===== Public API Methods =====
     
     /**
@@ -189,12 +211,7 @@ class AudioService : Service(), AudioPlayer.AudioPlayerCallback {
      */
     fun nextTrack() {
         if (playlist.isNotEmpty()) {
-            currentIndex = if (isShuffleEnabled) {
-                playlist.indices.random()
-            } else {
-                (currentIndex + 1) % playlist.size
-            }
-            
+            currentIndex = (currentIndex + 1) % playlist.size
             audioPlayer.prepareAudio(playlist[currentIndex])
             audioPlayer.play()
         }

@@ -1,0 +1,13 @@
+.gitignore
+app/src/main/AndroidManifest.xml
+app/src/main/java/com/sun/japaneselisteningtrainer/MainActivity.kt
+app/src/main/java/com/sun/japaneselisteningtrainer/service/AudioNotificationManager.kt
+app/src/main/java/com/sun/japaneselisteningtrainer/service/AudioPlayer.kt
+app/src/main/java/com/sun/japaneselisteningtrainer/service/AudioService.kt
+app/src/main/java/com/sun/japaneselisteningtrainer/service/AudioServiceManager.kt
+app/src/main/java/com/sun/japaneselisteningtrainer/ui/AppViewModelProvider.kt
+app/src/main/java/com/sun/japaneselisteningtrainer/ui/audio/player/MusicPlayerScreen.kt
+app/src/main/java/com/sun/japaneselisteningtrainer/ui/folder/create/CreateFolderDialog.kt
+app/src/main/java/com/sun/japaneselisteningtrainer/ui/home/HomeScreen.kt
+app/src/main/java/com/sun/japaneselisteningtrainer/ui/navigation/NavigationGraph.kt
+app/src/main/res/values/strings.xml

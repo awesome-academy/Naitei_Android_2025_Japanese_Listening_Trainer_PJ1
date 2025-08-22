@@ -71,9 +71,10 @@ fun MusicPlayerScreen(
     val isPlaying by musicPlayerViewModel.isPlaying.collectAsState()
     val currentPosition by musicPlayerViewModel.currentPosition.collectAsState()
     val duration by musicPlayerViewModel.duration.collectAsState()
-    val currentAudio by musicPlayerViewModel.currentAudioWithOverride.collectAsState()
+    val currentAudio by musicPlayerViewModel.currentAudio.collectAsState()
     val isLoadingAudio by musicPlayerViewModel.isLoadingAudio.collectAsState()
     val audioLoadError by musicPlayerViewModel.audioLoadError.collectAsState()
+    val isShuffleEnabled by musicPlayerViewModel.isShuffleEnabled.collectAsState()
 
     // Service đã được bind trong MainActivity.onCreate()
     // Không cần bind lại ở đây
@@ -88,8 +89,10 @@ fun MusicPlayerScreen(
             // 2. AudioId khác với audio hiện tại (thực sự là audio mới)
             if (currentAudio == null || currentAudio.id != audioId) {
                 musicPlayerViewModel.loadAndPlayAudio(audioId)
+            } else {
+                // Nếu cùng audio, refresh data để sync với database updates
+                musicPlayerViewModel.refreshCurrentAudio()
             }
-            // Nếu cùng audio đang phát, không làm gì (để nhạc tiếp tục phát)
         }
     }
 
@@ -158,6 +161,7 @@ fun MusicPlayerScreen(
                     duration = duration,
                     currentAudio = audio,
                     audioId = audioId,
+                    isShuffleEnabled = isShuffleEnabled,
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(inner)
@@ -186,6 +190,7 @@ fun PlayerContainer(
     duration: Long,
     currentAudio: Audio,
     audioId: Int,
+    isShuffleEnabled: Boolean,
     modifier: Modifier = Modifier
 ) {
     var isTranscriptVisible by remember { mutableStateOf(false) }
@@ -236,6 +241,7 @@ fun PlayerContainer(
                 currentPosition = currentPosition,
                 duration = duration,
                 currentAudio = currentAudio,
+                isShuffleEnabled = isShuffleEnabled,
                 modifier = Modifier
             )
         }
@@ -277,6 +283,7 @@ fun AudioController(
     currentPosition: Long,
     duration: Long,
     currentAudio: Audio,
+    isShuffleEnabled: Boolean,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -296,7 +303,7 @@ fun AudioController(
         Spacer(Modifier.height(8.dp))
         TransportBar(
             isPlaying = isPlaying,
-            isShuffleOn = musicPlayerViewModel.isShuffleEnabled(),
+            isShuffleOn = isShuffleEnabled,
             isFavorite = currentAudio.isFavorite,
             onToggleShuffle = { musicPlayerViewModel.toggleShuffle() },
             onPrevious = { musicPlayerViewModel.previousTrack() },

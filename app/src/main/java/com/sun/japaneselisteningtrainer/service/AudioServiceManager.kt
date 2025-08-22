@@ -270,6 +270,22 @@ class AudioServiceManager(
             throw e
         }
     }
+    
+    /**
+     * Refresh current audio from database (for edit updates)
+     */
+    suspend fun refreshCurrentAudio() {
+        try {
+            val currentId = _currentAudio.value?.id
+            if (currentId != null) {
+                val refreshedAudio = audioRepository.getAudioStream(currentId).first()
+                _currentAudio.value = refreshedAudio
+                Log.d(TAG, "Refreshed current audio data")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to refresh current audio: ${e.message}")
+        }
+    }
 
 
 }
