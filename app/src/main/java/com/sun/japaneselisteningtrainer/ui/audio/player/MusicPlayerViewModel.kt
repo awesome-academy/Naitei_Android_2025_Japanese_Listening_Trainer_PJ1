@@ -168,15 +168,5 @@ class MusicPlayerViewModel(
             }
         }
     }
-    
-    /**
-     * Refresh current audio data from database (call after edit)
-     */
-    fun refreshCurrentAudio() {
-        viewModelScope.launch {
-            audioServiceManager.refreshCurrentAudio()
-        }
-    }
-
 
 }

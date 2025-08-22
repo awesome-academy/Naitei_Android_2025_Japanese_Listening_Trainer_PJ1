@@ -47,20 +47,12 @@ class AudioServiceManager(
     private val _currentAudio = MutableStateFlow<Audio?>(null)
     val currentAudio: StateFlow<Audio?> = _currentAudio.asStateFlow()
 
-    /**
-     * Bind to AudioService
-     */
     fun bindToService() {
-        Log.d(TAG, "Binding to AudioService")
         val intent = Intent(context, AudioService::class.java)
         context.bindService(intent, this, Context.BIND_AUTO_CREATE)
     }
 
-    /**
-     * Unbind from AudioService
-     */
     fun unbindFromService() {
-        Log.d(TAG, "Unbinding from AudioService")
         stopFlowCollection()
         try {
             context.unbindService(this)
@@ -102,7 +94,6 @@ class AudioServiceManager(
 
     // ServiceConnection callbacks
     override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-        Log.d(TAG, "Service connected")
         val binder = service as AudioService.AudioServiceBinder
         audioService = binder.getService()
         _isServiceConnected.value = true
@@ -120,65 +111,38 @@ class AudioServiceManager(
 
     // ============ PLAYBACK CONTROL METHODS ============
 
-    /**
-     * Play single audio
-     */
-    fun playAudio(audio: Audio) {
-        audioService?.playAudio(audio)
+    fun playAudio(audioId: Int, withFolder: Boolean = false) {
+        audioService?.playAudio(audioId, withFolder)
     }
 
-    /**
-     * Play playlist
-     */
-    fun playPlaylist(audioList: List<Audio>, startIndex: Int = 0) {
-        audioService?.playPlaylist(audioList, startIndex)
+    fun playPlaylist(playlistId: Int, startIndex: Int = 0) {
+        audioService?.playPlaylist(playlistId, startIndex)
     }
 
-    /**
-     * Toggle play/pause
-     */
     fun togglePlayPause() {
         audioService?.togglePlayPause()
     }
 
-    /**
-     * Seek to position
-     */
     fun seekTo(position: Long) {
         audioService?.seekTo(position)
     }
 
-    /**
-     * Next track
-     */
     fun nextTrack() {
         audioService?.nextTrack()
     }
 
-    /**
-     * Previous track
-     */
     fun previousTrack() {
         audioService?.previousTrack()
     }
 
-    /**
-     * Toggle shuffle
-     */
     fun toggleShuffle() {
         audioService?.toggleShuffle()
     }
 
-    /**
-     * Check if shuffle is enabled
-     */
     fun isShuffleEnabled(): Boolean {
         return audioService?.isShuffleEnabled() ?: false
     }
 
-    /**
-     * Get current progress (0.0 to 1.0)
-     */
     fun getProgress(): Float {
         val dur = _duration.value
         val pos = _currentPosition.value
@@ -191,50 +155,12 @@ class AudioServiceManager(
      * Load audio from database and play
      */
     suspend fun loadAndPlayAudio(audioId: Int, forceReload: Boolean = false) {
-        try {
-            Log.d(TAG, "Loading audio with ID: $audioId")
-            
-            // Add timeout để tránh wait forever
-            val audio = withTimeoutOrNull(5.seconds) {
-                Log.d(TAG, "Querying database for audio ID: $audioId")
-                audioRepository.getAudioStream(audioId).first()
-            }
-            
-            Log.d(TAG, "Database query result: ${audio?.title ?: "null"}")
-            
-            if (audio != null) {
-                Log.d(TAG, "Playing audio: ${audio.title}")
-                
-                // Load toàn bộ playlist để hỗ trợ next/previous
-                val allAudios = withTimeoutOrNull(5.seconds) {
-                    audioRepository.getAllAudioStream().first()
-                } ?: emptyList()
-                
-                if (allAudios.isNotEmpty()) {
-                    val startIndex = allAudios.indexOfFirst { it.id == audioId }.takeIf { it >= 0 } ?: 0
-                    playPlaylist(allAudios, startIndex)
-                } else {
-                    // Fallback: chỉ phát audio đơn lẻ nếu không có playlist
-                    playAudio(audio)
-                }
-                
-                // Increment listen times chỉ khi là audio mới hoặc force reload
-                if (forceReload || lastPlayedAudioId != audio.id) {
-                    incrementListenTimes(audio)
-                    lastPlayedAudioId = audio.id
-                }
-            } else {
-                throw Exception("Audio with ID $audioId not found in database")
-            }
-        } catch (e: TimeoutCancellationException) {
-            Log.e(TAG, "Database query timeout for audio ID: $audioId")
-            throw Exception("Database query timeout")
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to load audio: ${e.message}")
-            throw e
+        playAudio(audioId)
+        if (forceReload || lastPlayedAudioId != audioId) {
+            incrementListenTimes(audioId)
+            lastPlayedAudioId = audioId
         }
     }
-
 
 
     /**
@@ -260,32 +186,13 @@ class AudioServiceManager(
     /**
      * Increment listen times and update database
      */
-    suspend fun incrementListenTimes(audio: Audio) {
+    private suspend fun incrementListenTimes(audioId: Int) {
         try {
+            val audio = audioRepository.getAudioStream(audioId).first() ?: throw Exception("Not found audio id")
             val updatedAudio = audio.copy(listenTimes = audio.listenTimes + 1)
             audioRepository.update(updatedAudio)
-            Log.d(TAG, "Incremented listen times for: ${audio.title}")
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to increment listen times: ${e.message}")
             throw e
         }
     }
-    
-    /**
-     * Refresh current audio from database (for edit updates)
-     */
-    suspend fun refreshCurrentAudio() {
-        try {
-            val currentId = _currentAudio.value?.id
-            if (currentId != null) {
-                val refreshedAudio = audioRepository.getAudioStream(currentId).first()
-                _currentAudio.value = refreshedAudio
-                Log.d(TAG, "Refreshed current audio data")
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to refresh current audio: ${e.message}")
-        }
-    }
-
-
 }

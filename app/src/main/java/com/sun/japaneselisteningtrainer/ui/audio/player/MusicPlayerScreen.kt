@@ -89,9 +89,6 @@ fun MusicPlayerScreen(
             // 2. AudioId khác với audio hiện tại (thực sự là audio mới)
             if (currentAudio == null || currentAudio.id != audioId) {
                 musicPlayerViewModel.loadAndPlayAudio(audioId)
-            } else {
-                // Nếu cùng audio, refresh data để sync với database updates
-                musicPlayerViewModel.refreshCurrentAudio()
             }
         }
     }

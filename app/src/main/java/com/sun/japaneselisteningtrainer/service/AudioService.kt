@@ -5,15 +5,28 @@ import android.content.Intent
 import android.os.Binder
 import android.os.IBinder
 import android.util.Log
+import androidx.compose.runtime.mutableStateOf
 import androidx.core.app.ServiceCompat
+import com.sun.japaneselisteningtrainer.TrainerApplication
+import com.sun.japaneselisteningtrainer.data.AppContainer
 import com.sun.japaneselisteningtrainer.data.model.Audio
+import com.sun.japaneselisteningtrainer.data.repository.AudioRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
@@ -31,10 +44,10 @@ class AudioService : Service(), AudioPlayer.AudioPlayerCallback {
     inner class AudioServiceBinder : Binder() {
         fun getService(): AudioService = this@AudioService
     }
-    
     private val binder = AudioServiceBinder()
     private lateinit var audioPlayer: AudioPlayer
     private lateinit var notificationManager: AudioNotificationManager
+    private lateinit var audioRepository: AudioRepository
     
     // Coroutine scope cho service
     private val serviceScope = CoroutineScope(Dispatchers.Main + Job())
@@ -50,30 +63,84 @@ class AudioService : Service(), AudioPlayer.AudioPlayerCallback {
     private val _duration = MutableStateFlow(0L) 
     val duration: StateFlow<Long> = _duration.asStateFlow()
     
-    private val _currentAudio = MutableStateFlow<Audio?>(null)
-    val currentAudio: StateFlow<Audio?> = _currentAudio.asStateFlow()
-    
+    private val _currentAudioId = MutableStateFlow<Int?>(null)
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val currentAudio: StateFlow<Audio?> = _currentAudioId.flatMapLatest {id ->
+        if (id == null) {
+            flowOf(null)
+        } else {
+            audioRepository.getAudioStream(id)
+        }
+    }.stateIn(
+        scope = serviceScope,
+        started = kotlinx.coroutines.flow.SharingStarted.Eagerly,
+        initialValue = null
+    )
+    private val lastedAudioIdStack = ArrayDeque<Int>()
+
     // Playlist management
-    private var playlist: List<Audio> = emptyList()
-    private var currentIndex = 0
+    private var _playlistId = MutableStateFlow<Int?>(null)
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private var playlist: StateFlow<List<Audio>> = _playlistId.flatMapLatest { id ->
+        if (id == null) {
+            audioRepository.getAllAudioStream()
+        } else {
+            //TODO: Fix to getFolderAudiosStream
+            audioRepository.getAllAudioStream().map { audioList ->
+                audioList.filter { it.folderId == id }
+            }
+        }
+    }.stateIn(
+        scope = serviceScope,
+        started = kotlinx.coroutines.flow.SharingStarted.Eagerly,
+        initialValue = emptyList()
+    )
+
     private var isShuffleEnabled = false
     
     override fun onCreate() {
         super.onCreate()
-        Log.d(TAG, "AudioService created")
-        
-        // Khởi tạo components
         audioPlayer = AudioPlayer(this).apply {
             setCallback(this@AudioService)
         }
         notificationManager = AudioNotificationManager(this)
+        val appContainer by lazy {
+            (application as TrainerApplication).container
+        }
+        audioRepository = appContainer.audioRepository
+        startCollectFlow()
     }
-    
+
+    private fun startCollectFlow() {
+        serviceScope.launch {
+            combine(
+                currentAudio.filterNotNull(),
+                isPlaying,
+                currentPosition,
+                duration
+            ) { _, _, _, _ ->
+            }.collect {
+                updateNotification()
+            }
+        }
+
+        serviceScope.launch {
+            currentAudio.filterNotNull().collect {
+                startForegroundService()
+                currentAudio.value?.let { audioPlayer.prepareAudio(it) }
+                audioPlayer.play()
+                lastedAudioIdStack.addLast(it.id.also {id ->
+                    Log.d("Mytag", "Last Audio ID: $id")
+                })
+            }
+        }
+
+    }
+
     override fun onBind(intent: Intent?): IBinder = binder
     
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Log.d(TAG, "onStartCommand: ${intent?.action}")
-        
+
         when (intent?.action) {
             AudioServiceConstants.ACTION_PLAY -> handlePlay()
             AudioServiceConstants.ACTION_PAUSE -> handlePause()
@@ -91,9 +158,6 @@ class AudioService : Service(), AudioPlayer.AudioPlayerCallback {
     
     override fun onDestroy() {
         super.onDestroy()
-        Log.d(TAG, "AudioService destroyed")
-        
-        // Cleanup
         stopPositionUpdates()
         audioPlayer.release()
         notificationManager.cancelNotification()
@@ -102,7 +166,7 @@ class AudioService : Service(), AudioPlayer.AudioPlayerCallback {
     
     // ===== AudioPlayer.AudioPlayerCallback Implementation =====
     
-    override fun onPlaybackStateChanged(isPlaying: Boolean) {
+    override fun onIsPlayingChanged(isPlaying: Boolean) {
         _isPlaying.value = isPlaying
         
         if (isPlaying) {
@@ -110,87 +174,41 @@ class AudioService : Service(), AudioPlayer.AudioPlayerCallback {
             startForegroundService()
         } else {
             stopPositionUpdates()
-            // Giữ foreground service nhưng update notification
         }
-        
-        updateNotification()
     }
-    
+
+
     override fun onPositionChanged(position: Long, duration: Long) {
         _currentPosition.value = position
         _duration.value = duration
-        
-        // Có thể update notification với progress nếu muốn
     }
     
     override fun onAudioChanged(audio: Audio?) {
-        _currentAudio.value = audio
-        
-        // Force start foreground service khi có audio
-        if (audio != null) {
-            startForegroundService()
-        }
-        
-        updateNotification()
+        _currentAudioId.value = audio?.id
     }
     
     override fun onError(error: String) {
         Log.e(TAG, "Audio error: $error")
-        // Có thể show toast hoặc notification error
     }
     
     override fun onAudioCompleted() {
-        Log.d(TAG, "Audio completed, checking shuffle mode")
-        if (playlist.size > 1) {
-            if (isShuffleEnabled) {
-                Log.d(TAG, "Shuffle enabled - playing random next audio")
-                // Chọn random audio khác (không phải audio hiện tại)
-                val availableIndices = playlist.indices.filter { it != currentIndex }
-                if (availableIndices.isNotEmpty()) {
-                    currentIndex = availableIndices.random()
-                    audioPlayer.prepareAudio(playlist[currentIndex])
-                    audioPlayer.play()
-                }
-            } else {
-                Log.d(TAG, "Shuffle disabled - playing next audio in order")
-                // Phát audio tiếp theo theo thứ tự
-                currentIndex = (currentIndex + 1) % playlist.size
-                audioPlayer.prepareAudio(playlist[currentIndex])
-                audioPlayer.play()
-            }
-        }
+        nextTrack()
     }
     
     // ===== Public API Methods =====
-    
-    /**
-     * Phát audio đơn lẻ
-     */
-    fun playAudio(audio: Audio) {
-        audioPlayer.prepareAudio(audio)
-        audioPlayer.play()
-        
-        // Cập nhật playlist với audio đơn lẻ
-        playlist = listOf(audio)
-        currentIndex = 0
+
+    fun playAudio(audioId: Int, withFolder: Boolean = false) {
+        _currentAudioId.value = audioId
+        if (withFolder) {
+            _playlistId.value = audioId
+        }
     }
-    
-    /**
-     * Phát playlist
-     */
-    fun playPlaylist(audioList: List<Audio>, startIndex: Int = 0) {
-        if (audioList.isEmpty()) return
-        
-        playlist = audioList
-        currentIndex = startIndex.coerceIn(0, audioList.size - 1)
-        
-        audioPlayer.prepareAudio(playlist[currentIndex])
-        audioPlayer.play()
+
+    fun playPlaylist(playlistId : Int, startIndex: Int = 0) {
+        _playlistId.value = playlistId
+        _currentAudioId.update { playlist.value[startIndex].id }
     }
-    
-    /**
-     * Toggle play/pause
-     */
+
     fun togglePlayPause() {
         if (audioPlayer.isCurrentlyPlaying()) {
             audioPlayer.pause()
@@ -210,10 +228,19 @@ class AudioService : Service(), AudioPlayer.AudioPlayerCallback {
      * Next track
      */
     fun nextTrack() {
-        if (playlist.isNotEmpty()) {
-            currentIndex = (currentIndex + 1) % playlist.size
-            audioPlayer.prepareAudio(playlist[currentIndex])
-            audioPlayer.play()
+        if (playlist.value.isNotEmpty()) {
+            val currentIndex = playlist.value.indexOf(currentAudio.value)
+            if (isShuffleEnabled) {
+                val availableIndices = playlist.value.indices.filter { it != currentIndex }
+                if (availableIndices.isNotEmpty()) {
+                    val newIndex = availableIndices.random()
+                    _currentAudioId.update { playlist.value[newIndex].id }
+                }
+            } else {
+                val newIndex = (currentIndex + 1) % playlist.value.size
+                _currentAudioId.update { playlist.value[newIndex].id }
+                Log.d(TAG, "Next track: ${playlist.value[newIndex].title}")
+            }
         }
     }
     
@@ -221,28 +248,18 @@ class AudioService : Service(), AudioPlayer.AudioPlayerCallback {
      * Previous track
      */
     fun previousTrack() {
-        if (playlist.isNotEmpty()) {
-            currentIndex = if (currentIndex > 0) {
-                currentIndex - 1
-            } else {
-                playlist.size - 1
-            }
-            
-            audioPlayer.prepareAudio(playlist[currentIndex])
-            audioPlayer.play()
+        fun beforeTrack() {
+            val currentIndex = playlist.value.indexOf(currentAudio.value)
+            val newIndex = (currentIndex - 1 + playlist.value.size) % playlist.value.size
+            _currentAudioId.update { playlist.value[newIndex].id }
         }
+        beforeTrack()
     }
-    
-    /**
-     * Toggle shuffle
-     */
+
     fun toggleShuffle() {
         isShuffleEnabled = !isShuffleEnabled
     }
-    
-    /**
-     * Check if shuffle is enabled
-     */
+
     fun isShuffleEnabled(): Boolean = isShuffleEnabled
     
     // ===== Private Helper Methods =====
@@ -276,13 +293,10 @@ class AudioService : Service(), AudioPlayer.AudioPlayerCallback {
      * Bắt đầu foreground service với notification
      */
     private fun startForegroundService() {
-        val currentAudio = _currentAudio.value ?: run {
-            Log.w(TAG, "Cannot start foreground service: no current audio")
+        val currentAudio = currentAudio.value ?: run {
             return
         }
-        
-        Log.d(TAG, "Starting foreground service for audio: ${currentAudio.title}")
-        
+
         val notification = notificationManager.createNotification(
             audio = currentAudio,
             isPlaying = _isPlaying.value,
@@ -292,17 +306,13 @@ class AudioService : Service(), AudioPlayer.AudioPlayerCallback {
         
         try {
             startForeground(AudioServiceConstants.NOTIFICATION_ID, notification)
-            Log.d(TAG, "Foreground service started successfully")
         } catch (e: Exception) {
             Log.e(TAG, "Failed to start foreground service: ${e.message}")
         }
     }
-    
-    /**
-     * Cập nhật notification
-     */
+
     private fun updateNotification() {
-        val currentAudio = _currentAudio.value ?: return
+        val currentAudio = currentAudio.value ?: return
         
         val notification = notificationManager.createNotification(
             audio = currentAudio,
@@ -311,13 +321,9 @@ class AudioService : Service(), AudioPlayer.AudioPlayerCallback {
             duration = _duration.value
         )
         
-        // Update notification thông qua notification manager
         notificationManager.updateNotification(notification)
     }
-    
-    /**
-     * Bắt đầu cập nhật position định kỳ
-     */
+
     private fun startPositionUpdates() {
         stopPositionUpdates()
         
@@ -329,14 +335,11 @@ class AudioService : Service(), AudioPlayer.AudioPlayerCallback {
                 _currentPosition.value = position
                 _duration.value = duration
                 
-                delay(1000) // Cập nhật mỗi giây
+                delay(1000)
             }
         }
     }
-    
-    /**
-     * Dừng cập nhật position
-     */
+
     private fun stopPositionUpdates() {
         positionUpdateJob?.cancel()
         positionUpdateJob = null
