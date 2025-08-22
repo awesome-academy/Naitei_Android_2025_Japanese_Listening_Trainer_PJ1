@@ -113,6 +113,7 @@ fun HomeScreen(
                     imageRes = R.drawable.logo,
                     isFavorite = audio.isFavorite,
                     onClick = {
+                        homeViewModel.playAudio(audio)
                         navigateToMusicPlayer(audio.id)
                     },
                     onFavoriteClick = {

@@ -1,39 +1,43 @@
 package com.sun.japaneselisteningtrainer.ui.folder.audiolists
 
-import android.util.Log
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sun.japaneselisteningtrainer.data.folder.FolderRepository
 import com.sun.japaneselisteningtrainer.data.model.Folder
 import com.sun.japaneselisteningtrainer.data.repository.AudioRepository
+import com.sun.japaneselisteningtrainer.service.AudioServiceManager
 import com.sun.japaneselisteningtrainer.ui.folder.components.AudioItemInfo
 import com.sun.japaneselisteningtrainer.ui.folder.components.toAudioItemInfo
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class FolderAudioListViewModel(
     savedStateHandle: SavedStateHandle,
     private val folderRepository: FolderRepository,
     private val audioRepository: AudioRepository,
+    private val audioServiceManager: AudioServiceManager
 ) : ViewModel() {
     val folderId: Int = checkNotNull(savedStateHandle[FolderAudioListDestination.folderIdArg])
 
-    val uiState = mutableStateOf(FolderAudioListUiState(Folder()))
+    private val _uiState = MutableStateFlow(
+        FolderAudioListUiState(folder = Folder())
+    )
+
+    val uiState = _uiState.asStateFlow()
 
     init {
         viewModelScope.launch {
             folderRepository.getFolderStream(folderId)
-                .onEach {
-                    Log.d("MyTag", "folder: $it")
-                }
                 .filterNotNull()
                 .collect {
-                    uiState.value = uiState.value.copy(folder = it)
+                    _uiState.update { current ->
+                        current.copy(folder = it)
+                    }
                 }
         }
 
@@ -43,30 +47,42 @@ class FolderAudioListViewModel(
                     audio.toAudioItemInfo()
                 }
             }.collect { audioItemInfoList ->
-                uiState.value = uiState.value.copy(audioItemInfoList = audioItemInfoList)
+                _uiState.update {
+                    it.copy(audioItemInfoList = audioItemInfoList)
+                }
+            }
+        }
+
+        // Fetch ui state from service
+        viewModelScope.launch {
+            audioServiceManager.isPlaying.collect {
+                updateUiState(uiState.value.copy(isPlaying = it))
+            }
+        }
+
+        viewModelScope.launch {
+            audioServiceManager.currentAudio.filterNotNull().map { it.id }.collect { id ->
+                updateUiState(uiState.value.copy(playingAudioId = id))
             }
         }
     }
 
     private fun updateUiState(newUiState: FolderAudioListUiState) {
-        uiState.value = newUiState
+        _uiState.update { newUiState }
     }
 
     fun playPause(audioId: Int) {
-        updateUiState(uiState.value.copy(playingAudioId = audioId))
+        audioServiceManager.playPause(audioId)
     }
 
     suspend fun favorite(audioId: Int) {
-        val audio = audioRepository.getAudioStream(audioId).first()
-        if (audio != null) {
-            val newAudio = audio.copy(isFavorite = !audio.isFavorite)
-            audioRepository.update(newAudio)
-        }
+        audioServiceManager.toggleFavoriteStatus(audioId)
     }
 }
 
 data class FolderAudioListUiState(
     val folder: Folder,
     val audioItemInfoList: List<AudioItemInfo> = listOf(),
-    val playingAudioId : Int = -1,
+    val playingAudioId: Int = -1,
+    val isPlaying: Boolean = false,
 )

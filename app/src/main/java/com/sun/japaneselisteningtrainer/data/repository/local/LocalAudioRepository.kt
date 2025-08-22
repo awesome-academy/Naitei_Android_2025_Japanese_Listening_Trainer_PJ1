@@ -21,7 +21,6 @@ interface ChangeObserver {
     fun onChanged()
 }
 
-// TODO: Flow cần được đưa vào Dispatcher.IO
 class DbChangeNotifier {
     private val observers = mutableListOf<ChangeObserver>()
 
@@ -40,18 +39,23 @@ class DbChangeNotifier {
     }
 }
 
-class LocalAudioRepository(dbHelper: JLTDbHelper, private val audioFileStorage: AudioFileStorage) : AudioRepository {
+class LocalAudioRepository(dbHelper: JLTDbHelper, private val audioFileStorage: AudioFileStorage) :
+    AudioRepository {
     private val db = dbHelper.writableDatabase
     private val notifier = DbChangeNotifier()
 
     /**
      * Add a new audio to the database with the given audio's source.
      */
-    override suspend fun add(audio: Audio, source: Uri) : Int = withContext(Dispatchers.IO) {
+    override suspend fun add(audio: Audio, source: Uri): Int = withContext(Dispatchers.IO) {
         val metadata = audioFileStorage.save(source)
         val filePath = metadata.uri.toString()
         val duration = metadata.duration
-        val savedAudio = audio.copy(filePath = filePath, duration = duration, createdAt = System.currentTimeMillis())
+        val savedAudio = audio.copy(
+            filePath = filePath,
+            duration = duration,
+            createdAt = System.currentTimeMillis()
+        )
         val values = ContentValues().apply {
             put(JLTContract.Audio.COLUMN_FOLDER_ID, savedAudio.folderId)
             put(JLTContract.Audio.COLUMN_TITLE, savedAudio.title)
@@ -111,12 +115,8 @@ class LocalAudioRepository(dbHelper: JLTDbHelper, private val audioFileStorage: 
 
         val observer = object : ChangeObserver {
             override fun onChanged() {
-                try {
-                    launch {
-                        trySend(query()).isSuccess
-                    }
-                } catch (e: Exception) {
-                    Log.v("MyTag", e.toString())
+                launch {
+                    trySend(query()).isSuccess
                 }
             }
         }
@@ -160,10 +160,13 @@ class LocalAudioRepository(dbHelper: JLTDbHelper, private val audioFileStorage: 
     override fun getFolderAudiosStream(folderId: Int): Flow<List<Audio>> = callbackFlow {
         suspend fun query(): List<Audio> = withContext(Dispatchers.IO) {
             val audioList = mutableListOf<Audio>()
-            val query = "SELECT * FROM ${JLTContract.Audio.TABLE_NAME} WHERE ${JLTContract.Audio.COLUMN_FOLDER_ID} = ?"
+            val query =
+                "SELECT * FROM ${JLTContract.Audio.TABLE_NAME} WHERE ${JLTContract.Audio.COLUMN_FOLDER_ID} = ?"
             val cursor = db.rawQuery(query, arrayOf(folderId.toString()))
             if (cursor.moveToFirst()) {
-                do { audioList.add(cursor.toAudio()) } while (cursor.moveToNext())
+                do {
+                    audioList.add(cursor.toAudio())
+                } while (cursor.moveToNext())
             }
             cursor.close()
             return@withContext audioList

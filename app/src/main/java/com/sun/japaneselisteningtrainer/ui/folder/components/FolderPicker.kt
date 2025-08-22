@@ -88,6 +88,7 @@ fun FolderPicker(
 @Composable
 fun FolderPickerDialog(
     modifier: Modifier = Modifier,
+    title: String = stringResource(R.string.select_folder),
     folderList: List<Folder>,
     onFolderSelected: (Folder) -> Unit,
     onDismiss: () -> Unit,

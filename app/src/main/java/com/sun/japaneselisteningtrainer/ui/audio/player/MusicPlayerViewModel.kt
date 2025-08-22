@@ -156,7 +156,7 @@ class MusicPlayerViewModel(
 
             try {
                 // Then update database và service state
-                audioServiceManager.toggleFavoriteStatus(audio)
+                audioServiceManager.toggleFavoriteStatus(audio.id)
 
                 // Clear override sau khi update thành công
                 // AudioServiceManager đã update _currentAudio

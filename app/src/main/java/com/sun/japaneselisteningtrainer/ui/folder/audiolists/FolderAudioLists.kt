@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -31,6 +33,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -75,18 +78,17 @@ fun FolderAudioListScreen(
     navigateBar: @Composable () -> Unit,
     onNavigateUp: () -> Unit,
 ) {
-    val uiState by viewModel.uiState
-    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+    val uiState by viewModel.uiState.collectAsState()
     var createFolderRequired by remember { mutableStateOf(false) }
     val snackBarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
     Scaffold(
-        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        modifier = modifier,
         topBar = {
             TrainerTopAppBar(
-                title = stringResource(FolderAudioListDestination.titleRes),
+                title = uiState.folder.name,
                 canNavigateBack = true,
                 navigateUp = { onNavigateUp() },
                 actions = {
@@ -103,22 +105,29 @@ fun FolderAudioListScreen(
             SnackbarHost(hostState = snackBarHostState)
         }
     ) { padding ->
-        Column(modifier = Modifier.padding(padding)) {
-            FolderHeader(
-                modifier = Modifier.background(MaterialTheme.colorScheme.surface),
-                folder = uiState.folder
-            )
-            HorizontalDivider()
-            AudioList(
-                playingAudioId = uiState.playingAudioId,
-                audioItemInfoList = uiState.audioItemInfoList,
-                onPlayPause = { viewModel.playPause(it) },
-                onFavorite = {
-                    scope.launch {
-                        viewModel.favorite(it)
-                    }
-                }
-            )
+        LazyColumn(contentPadding = padding, modifier = Modifier.fillMaxSize()) {
+            item {
+                FolderHeader(
+                    folder = uiState.folder,
+                    onStudyClick = { /*TODO*/ }
+                )
+            }
+
+            items(uiState.audioItemInfoList, key = { item -> item.id }) { item ->
+                AudioItem(
+                    modifier = Modifier.padding(dimensionResource(R.dimen.dp_8)),
+                    isPlaying = (item.id == uiState.playingAudioId) && uiState.isPlaying,
+                    info = item,
+                    onClick = { /*TODO*/ },
+                    onLongClick = { /*TODO*/ },
+                    onFavorite = {
+                        scope.launch {
+                            viewModel.favorite(item.id)
+                        }
+                    },
+                    onPlayPause = { viewModel.playPause(item.id) }
+                )
+            }
         }
     }
 }
@@ -131,7 +140,7 @@ fun FolderHeader(
     onStudyClick: () -> Unit = {},
 ) {
     Surface(
-        modifier = modifier.height(IntrinsicSize.Max),
+        modifier = modifier.height(IntrinsicSize.Max).wrapContentSize(),
         color = color
     ) {
         Row(modifier = Modifier.padding(16.dp)) {
@@ -147,7 +156,7 @@ fun FolderHeader(
                     modifier = Modifier,
                     title = folder.name
                 )
-                FolderDescription(
+                if (folder.description.isNotBlank()) FolderDescription(
                     description = folder.description
                 )
             }
@@ -161,9 +170,8 @@ fun FolderHeader(
                 )
             }
         }
-
     }
-
+    HorizontalDivider()
 }
 
 @Composable
@@ -223,40 +231,5 @@ fun FolderDescription(
             text = description,
             style = MaterialTheme.typography.displaySmall
         )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun FolderHeaderReview() {
-    JapaneseListeningTrainerTheme {
-        FolderHeader(
-            folder = Folder(1, "Folder", "Description")
-        )
-    }
-}
-
-@Composable
-fun AudioList(
-    modifier: Modifier = Modifier,
-    playingAudioId: Int,
-    audioItemInfoList: List<AudioItemInfo>,
-    onPlayPause: (audioId: Int) -> Unit,
-    onFavorite: (audioId: Int) -> Unit,
-) {
-    LazyColumn(
-        modifier = modifier
-    ) {
-        items(audioItemInfoList, key = { item -> item.id }) { item ->
-            AudioItem(
-                modifier = Modifier.padding(dimensionResource(R.dimen.dp_8)),
-                isPlaying = item.id == playingAudioId,
-                info = item,
-                onClick = { /*TODO*/ },
-                onLongClick = { /*TODO*/ },
-                onFavorite = { onFavorite(item.id) },
-                onPlayPause = { onPlayPause(item.id) }
-            )
-        }
     }
 }

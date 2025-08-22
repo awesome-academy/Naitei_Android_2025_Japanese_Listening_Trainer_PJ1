@@ -23,7 +23,6 @@ class MockFolderRepository : FolderRepository {
     }
 
     override suspend fun add(folder: Folder): Unit = withContext(Dispatchers.IO) {
-        Log.d("MockFolderRepository", "Adding folder: $folder")
         folderDatabase.add(folder.copy(id = id++))
         notifier.notifyChanged()
     }

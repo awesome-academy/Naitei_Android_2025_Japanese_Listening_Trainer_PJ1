@@ -82,7 +82,8 @@ object AppViewModelProvider {
             FolderAudioListViewModel (
                 savedStateHandle = this.createSavedStateHandle(),
                 folderRepository = trainerApplication().container.folderRepository,
-                audioRepository = trainerApplication().container.audioRepository
+                audioRepository = trainerApplication().container.audioRepository,
+                audioServiceManager = trainerApplication().container.audioServiceManager
             )
         }
 
