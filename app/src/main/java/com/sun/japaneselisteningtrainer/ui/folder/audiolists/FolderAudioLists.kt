@@ -109,7 +109,7 @@ fun FolderAudioListScreen(
             item {
                 FolderHeader(
                     folder = uiState.folder,
-                    onStudyClick = { /*TODO*/ }
+                    onStudyClick = { viewModel.playAll() }
                 )
             }
 

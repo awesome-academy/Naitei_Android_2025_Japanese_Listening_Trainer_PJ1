@@ -72,7 +72,16 @@ class FolderAudioListViewModel(
     }
 
     fun playPause(audioId: Int) {
-        audioServiceManager.playPause(audioId)
+        viewModelScope.launch {
+            audioServiceManager.loadAndPlayAudio(audioId)
+        }
+    }
+
+    fun playAll() {
+        val firstAudioId = uiState.value.audioItemInfoList.firstOrNull()?.id ?: return
+        viewModelScope.launch {
+            audioServiceManager.loadAndPlayAudio(firstAudioId, forceReload = true)
+        }
     }
 
     suspend fun favorite(audioId: Int) {
