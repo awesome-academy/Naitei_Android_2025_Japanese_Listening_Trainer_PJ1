@@ -20,8 +20,9 @@ class MockAudioRepository : AudioRepository {
         return audioDatabase.indexOf(audio)
     }
 
-    override suspend fun delete(audio: Audio) {
-        audioDatabase.remove(audio)
+    override suspend fun delete(audioId: Int) {
+        val index = audioDatabase.indexOfFirst { it.id == audioId }
+        audioDatabase.removeAt(index)
     }
 
     override suspend fun update(audio: Audio) {

@@ -52,6 +52,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.dialog
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.sun.japaneselisteningtrainer.ui.audio.entry.AudioEntryDestination
@@ -60,6 +61,8 @@ import com.sun.japaneselisteningtrainer.ui.audio.entry.AudioEditDestination
 import com.sun.japaneselisteningtrainer.ui.audio.entry.AudioEditScreen
 import com.sun.japaneselisteningtrainer.ui.audio.player.MusicPlayerDestination
 import com.sun.japaneselisteningtrainer.ui.audio.player.MusicPlayerScreen
+import com.sun.japaneselisteningtrainer.ui.components.AudioMenuDestination
+import com.sun.japaneselisteningtrainer.ui.components.AudioMenuDialog
 import com.sun.japaneselisteningtrainer.ui.folder.FolderListDestination
 import com.sun.japaneselisteningtrainer.ui.folder.FolderListScreen
 import com.sun.japaneselisteningtrainer.ui.folder.audiolists.FolderAudioListDestination
@@ -83,7 +86,7 @@ sealed class NavItem(
 
     companion object {
         val items by lazy { listOf(Home, Folder, Add, Search, Profile) }
-        val destinationRoutes by lazy { items.filter { it.des != null }.map {it.des?.route} }
+        val destinationRoutes by lazy { items.filter { it.des != null }.map { it.des?.route } }
     }
 }
 
@@ -111,8 +114,10 @@ fun TrainerNavHost(
                         navController = navController
                     )
                 },
-                onNavigateToAudioPlayer = { audioId ->
-                    navController.navigate(MusicPlayerDestination.createRoute(audioId))
+                onAudioLongClick = { audioId ->
+                    navController.navigate(
+                        AudioMenuDestination.createRoute(audioId)
+                    )
                 }
             )
         }
@@ -151,7 +156,12 @@ fun TrainerNavHost(
                         navController = navController,
                     )
                 },
-                onNavigateUp = navController::navigateUp
+                onNavigateUp = navController::navigateUp,
+                onAudioLongClick = { audioId ->
+                    navController.navigate(
+                        AudioMenuDestination.createRoute(audioId)
+                    )
+                }
             )
         }
 
@@ -181,6 +191,22 @@ fun TrainerNavHost(
                 audioId = audioId,
                 navigateBack = { navController.popBackStack() },
                 onNavigationUp = { navController.navigateUp() }
+            )
+        }
+
+        dialog(
+            route = AudioMenuDestination.routeWithArgs,
+            arguments = listOf(navArgument(AudioMenuDestination.audioIdArg) {
+                type = NavType.IntType
+            })
+        ) {
+            AudioMenuDialog(
+                onEdit = {
+                    navController.navigate(AudioEditDestination.createRoute(it))
+                },
+                onDismiss = {
+                    navController.navigateUp()
+                }
             )
         }
     }

@@ -76,6 +76,7 @@ fun FolderAudioListScreen(
     modifier: Modifier = Modifier,
     viewModel: FolderAudioListViewModel = viewModel(factory = AppViewModelProvider.Factory),
     navigateBar: @Composable () -> Unit,
+    onAudioLongClick: (Int) -> Unit,
     onNavigateUp: () -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -118,8 +119,8 @@ fun FolderAudioListScreen(
                     modifier = Modifier.padding(dimensionResource(R.dimen.dp_8)),
                     isPlaying = (item.id == uiState.playingAudioId) && uiState.isPlaying,
                     info = item,
-                    onClick = { /*TODO*/ },
-                    onLongClick = { /*TODO*/ },
+                    onClick = { viewModel.playPause(item.id) },
+                    onLongClick = { onAudioLongClick(item.id) },
                     onFavorite = {
                         scope.launch {
                             viewModel.favorite(item.id)

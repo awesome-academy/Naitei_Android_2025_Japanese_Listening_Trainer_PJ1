@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface AudioRepository {
     suspend fun add(audio: Audio, source: Uri) : Int
-    suspend fun delete(audio: Audio)
+    suspend fun delete(audioId: Int)
     suspend fun update(audio: Audio)
     fun getAllAudioStream(): Flow<List<Audio>>
     fun getAudioStream(id: Int): Flow<Audio?>

@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import androidx.core.net.toUri
 
 interface ChangeObserver {
     fun onChanged()
@@ -39,10 +40,12 @@ class DbChangeNotifier {
     }
 }
 
-class LocalAudioRepository(dbHelper: JLTDbHelper, private val audioFileStorage: AudioFileStorage) :
-    AudioRepository {
+class LocalAudioRepository(
+    dbHelper: JLTDbHelper,
+    private val audioFileStorage: AudioFileStorage,
+    private val notifier: DbChangeNotifier
+) : AudioRepository {
     private val db = dbHelper.writableDatabase
-    private val notifier = DbChangeNotifier()
 
     /**
      * Add a new audio to the database with the given audio's source.
@@ -73,9 +76,20 @@ class LocalAudioRepository(dbHelper: JLTDbHelper, private val audioFileStorage: 
         return@withContext id.toInt()
     }
 
-    override suspend fun delete(audio: Audio) = withContext(Dispatchers.IO) {
+    override suspend fun delete(audioId: Int) = withContext(Dispatchers.IO) {
+        val query = "SELECT ${JLTContract.Audio.COLUMN_FILE_PATH} FROM ${JLTContract.Audio.TABLE_NAME} WHERE ${BaseColumns._ID} = ?"
+        val cursor = db.rawQuery(query, arrayOf(audioId.toString()))
+        var filePath = ""
+        cursor.use {
+            if (it.moveToFirst()) {
+                filePath = it.getString(cursor.getColumnIndexOrThrow(JLTContract.Audio.COLUMN_FILE_PATH))
+            }
+        }
+        if (filePath.isNotBlank()) {
+            audioFileStorage.delete(filePath.toUri())
+        }
         val selection = "${BaseColumns._ID} = ?"
-        val selectionArgs = arrayOf(audio.id.toString())
+        val selectionArgs = arrayOf(audioId.toString())
         db.delete(JLTContract.Audio.TABLE_NAME, selection, selectionArgs)
         notifier.notifyChanged()
     }

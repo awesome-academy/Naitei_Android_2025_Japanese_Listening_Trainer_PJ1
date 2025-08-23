@@ -31,6 +31,7 @@ import com.sun.japaneselisteningtrainer.ui.folder.components.FolderPickerViewMod
 import com.sun.japaneselisteningtrainer.ui.folder.create.CreateFolderViewModel
 import com.sun.japaneselisteningtrainer.ui.folder.edit.EditFolderViewModel
 import com.sun.japaneselisteningtrainer.ui.audio.player.MusicPlayerViewModel
+import com.sun.japaneselisteningtrainer.ui.components.AudioMenuDialogViewModel
 
 /**
  * Provides Factory to create instance of ViewModel for the entire Japanese Listening Trainer app
@@ -91,6 +92,14 @@ object AppViewModelProvider {
         initializer {
             MusicPlayerViewModel(
                 audioServiceManager = trainerApplication().container.audioServiceManager,
+                audioRepository = trainerApplication().container.audioRepository
+            )
+        }
+
+        // Initializer for AudioMenuDialogViewModel
+        initializer {
+            AudioMenuDialogViewModel(
+                savedStateHandle = this.createSavedStateHandle(),
                 audioRepository = trainerApplication().container.audioRepository
             )
         }

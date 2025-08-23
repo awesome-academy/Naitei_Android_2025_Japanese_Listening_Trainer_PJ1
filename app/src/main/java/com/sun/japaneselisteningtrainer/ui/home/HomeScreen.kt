@@ -1,8 +1,10 @@
 package com.sun.japaneselisteningtrainer.ui.home
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -56,11 +58,11 @@ object HomeDestination : NavigationDestination {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    navigateToMusicPlayer: (Int) -> Unit = {},
     modifier: Modifier = Modifier,
     homeViewModel: HomeViewModel = viewModel(factory = AppViewModelProvider.Factory),
     navigationBar: @Composable () -> Unit,
-    onNavigateToAudioPlayer: (Int) -> Unit
+    navigateToMusicPlayer: (Int) -> Unit,
+    onAudioLongClick: (Int) -> Unit
 ) {
     val homeUiState by homeViewModel.uiState.collectAsState()
 
@@ -116,6 +118,7 @@ fun HomeScreen(
                         homeViewModel.playAudio(audio)
                         navigateToMusicPlayer(audio.id)
                     },
+                    onLongClick = { onAudioLongClick(audio.id) },
                     onFavoriteClick = {
                         homeViewModel.toggleFavorite(audio.id)
                     }
@@ -125,20 +128,26 @@ fun HomeScreen(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun AudioCard(
+    modifier: Modifier = Modifier,
     title: String,
     imageRes: Int,
     isFavorite: Boolean = false,
     onClick: () -> Unit,
+    onLongClick: () -> Unit = {},
     onFavoriteClick: () -> Unit = {}
 ) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.surfaceVariant)
             .padding(12.dp)
-            .clickable { onClick() },
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = onLongClick
+            ),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Image(

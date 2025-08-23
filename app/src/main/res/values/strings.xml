@@ -48,4 +48,6 @@
     <string name="New">New</string>
     <string name="edit_audio">Edit Audio</string>
     <string name="update_audio">Update Audio</string>
+    <string name="move_to">Move To</string>
+    <string name="audio_menu_title">Audio Menu</string>
 </resources>

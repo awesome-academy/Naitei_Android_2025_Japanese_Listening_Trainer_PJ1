@@ -12,6 +12,11 @@ import com.sun.japaneselisteningtrainer.data.repository.local.JLTContract.SQL_DE
 
 
 class JLTDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
+    override fun onConfigure(db: SQLiteDatabase) {
+        super.onConfigure(db)
+        db.setForeignKeyConstraintsEnabled(true)
+    }
+
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL(SQL_CREATE_AUDIO_TABLE)
         db.execSQL(SQL_CREATE_FOLDER_TABLE)

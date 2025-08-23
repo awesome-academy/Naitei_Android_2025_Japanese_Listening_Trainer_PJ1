@@ -11,8 +11,7 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class LocalFolderRepository(dbHelper: JLTDbHelper) : FolderRepository {
-    private val notifier = DbChangeNotifier()
+class LocalFolderRepository(dbHelper: JLTDbHelper, private val notifier: DbChangeNotifier) : FolderRepository {
     private val db = dbHelper.writableDatabase
 
     override suspend fun add(folder: Folder) = withContext(Dispatchers.IO) {
