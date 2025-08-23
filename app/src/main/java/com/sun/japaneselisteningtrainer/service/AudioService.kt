@@ -250,7 +250,7 @@ class AudioService : Service(), AudioPlayer.AudioPlayerCallback {
             }
         } else if (playlist.value.size == 1) {
             audioPlayer.seekTo(0)
-            audioPlayer
+            audioPlayer.play()
         }
     }
 

@@ -47,7 +47,7 @@ class CreateFolderViewModel(val folderRepository: FolderRepository) : ViewModel(
         (folderRepository.getFolderStream(this.trim()).first() != null)
 
     private suspend fun doesTittleExist(title: String): Boolean = title.exists()
-            && title.length > TITLE_MAX_LENGTH
+            || title.length > TITLE_MAX_LENGTH
 
     fun createFolder(folder: Folder = uiState.toFolder()) {
         viewModelScope.launch {
