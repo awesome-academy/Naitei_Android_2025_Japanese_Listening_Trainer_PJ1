@@ -8,10 +8,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class LocalFolderRepository(dbHelper: JLTDbHelper) : FolderRepository {
-    private val notifier = DbChangeNotifier()
+class LocalFolderRepository(dbHelper: JLTDbHelper, private val notifier: DbChangeNotifier) : FolderRepository {
     private val db = dbHelper.writableDatabase
 
     override suspend fun add(folder: Folder) = withContext(Dispatchers.IO) {
@@ -44,7 +44,7 @@ class LocalFolderRepository(dbHelper: JLTDbHelper) : FolderRepository {
     }
 
     override fun getAllFolderStream(): Flow<List<Folder>> = callbackFlow {
-        fun query(): List<Folder> {
+        suspend fun query(): List<Folder> = withContext(Dispatchers.IO) {
             val folderList = mutableListOf<Folder>()
             val query = "SELECT * FROM ${JLTContract.Folder.TABLE_NAME}"
             val cursor = db.rawQuery(query, null)
@@ -59,17 +59,21 @@ class LocalFolderRepository(dbHelper: JLTDbHelper) : FolderRepository {
                 } while (cursor.moveToNext())
             }
             cursor.close()
-            return folderList
+            return@withContext folderList
         }
 
         val observer = object : ChangeObserver {
             override fun onChanged() {
-                trySend(query()).isSuccess
+                launch {
+                    trySend(query()).isSuccess
+                }
             }
         }
 
         notifier.register(observer)
-        trySend(query()).isSuccess
+        launch {
+            trySend(query()).isSuccess
+        }
 
         awaitClose {
             notifier.remove(observer)
@@ -77,36 +81,39 @@ class LocalFolderRepository(dbHelper: JLTDbHelper) : FolderRepository {
     }
 
     override fun getFolderStream(id: Int): Flow<Folder?> = callbackFlow {
-        fun query(): Folder? {
+        suspend fun query(): Folder? = withContext(Dispatchers.IO) {
             val query = "SELECT * FROM ${JLTContract.Folder.TABLE_NAME} WHERE ${BaseColumns._ID} = ?"
             val cursor = db.rawQuery(query, arrayOf(id.toString()))
             if (cursor.moveToFirst()) {
                 val name = cursor.getString(cursor.getColumnIndexOrThrow(JLTContract.Folder.COLUMN_NAME))
                 val description = cursor.getString(cursor.getColumnIndexOrThrow(JLTContract.Folder.COLUMN_DESCRIPTION))
                 val createdAt = cursor.getLong(cursor.getColumnIndexOrThrow(JLTContract.Folder.COLUMN_CREATED_AT))
-                return Folder(id, name, description, createdAt)
+                return@withContext Folder(id, name, description, createdAt)
             }
             cursor.close()
-            return null
+            return@withContext null
         }
 
         val observer = object : ChangeObserver {
             override fun onChanged() {
-                trySend(query()).isSuccess
+                launch {
+                    trySend(query()).isSuccess
+                }
             }
         }
 
         notifier.register(observer)
 
-        trySend(query()).isSuccess
-
+        launch {
+            trySend(query()).isSuccess
+        }
         awaitClose {
             notifier.remove(observer)
         }
     }
 
     override fun getFolderStream(title: String): Flow<Folder?> = callbackFlow {
-        fun query(): Folder? {
+        suspend fun query(): Folder? = withContext(Dispatchers.IO) {
             val query = "SELECT * FROM ${JLTContract.Folder.TABLE_NAME} WHERE ${JLTContract.Folder.COLUMN_NAME} = ?"
             val cursor = db.rawQuery(query, arrayOf(title))
             if (cursor.moveToFirst()) {
@@ -114,22 +121,25 @@ class LocalFolderRepository(dbHelper: JLTDbHelper) : FolderRepository {
                 val name = cursor.getString(cursor.getColumnIndexOrThrow(JLTContract.Folder.COLUMN_NAME))
                 val description = cursor.getString(cursor.getColumnIndexOrThrow(JLTContract.Folder.COLUMN_DESCRIPTION))
                 val createdAt = cursor.getLong(cursor.getColumnIndexOrThrow(JLTContract.Folder.COLUMN_CREATED_AT))
-                return Folder(id, name, description, createdAt)
+                return@withContext Folder(id, name, description, createdAt)
             }
             cursor.close()
-            return null
+            return@withContext null
         }
 
         val observer = object : ChangeObserver {
             override fun onChanged() {
-                trySend(query()).isSuccess
+                launch {
+                    trySend(query()).isSuccess
+                }
             }
         }
 
         notifier.register(observer)
 
-        trySend(query()).isSuccess
-
+        launch {
+            trySend(query()).isSuccess
+        }
         awaitClose {
             notifier.remove(observer)
         }

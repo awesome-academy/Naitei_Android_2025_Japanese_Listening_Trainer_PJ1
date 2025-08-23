@@ -1,6 +1,7 @@
 package com.sun.japaneselisteningtrainer.data.storage
 
 import android.content.Context
+import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Environment
 import kotlinx.coroutines.Dispatchers
@@ -19,12 +20,21 @@ class ExternalAudioFileStorage(private val context: Context) : AudioFileStorage 
         }
     }
 
-    override suspend fun save(inputUri: Uri): Uri = withContext(Dispatchers.IO) {
+    override suspend fun save(inputUri: Uri): AddAudioResult = withContext(Dispatchers.IO) {
+
         val filename = UUID.randomUUID().toString()
         val file = File(audioDir, filename)
         val inputStream = context.contentResolver.openInputStream(inputUri)
         inputStream.use { input -> file.outputStream().use { output -> input?.copyTo(output) } }
-        return@withContext Uri.fromFile(file)
+        return@withContext AddAudioResult(Uri.fromFile(file), getAudioDuration(inputUri))
+    }
+
+    private fun getAudioDuration(uri: Uri): Long {
+        val retriever = MediaMetadataRetriever()
+        retriever.setDataSource(context, uri)
+        val time = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+        retriever.release()
+        return time?.toLong() ?: 0
     }
 
     override suspend fun get(uri: Uri): File? = withContext(Dispatchers.IO) {

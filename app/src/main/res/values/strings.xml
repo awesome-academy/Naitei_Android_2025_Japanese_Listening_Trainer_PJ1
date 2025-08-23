@@ -27,7 +27,7 @@
     <string name="folder_edited">Folder Edited</string>
     <string name="edit">Edit</string>
     <string name="delete">Delete</string>
-    <string name="max_chars">Max: 1$d chars</string>
+    <string name="max_chars">Max: %1$d chars</string>
     <string name="select_folder">Select Folder</string>
     <string name="search_folder">Search Folder</string>
     <string name="search">Search</string>
@@ -44,6 +44,10 @@
     <string name="no_file_selected">No file selected</string>
     <string name="upload_audio">Upload Audio</string>
     <string name="please_add_transcript">Please add a transcript for this audio.</string>
+    <string name="null_string" />
+    <string name="New">New</string>
     <string name="edit_audio">Edit Audio</string>
     <string name="update_audio">Update Audio</string>
+    <string name="move_to">Move To</string>
+    <string name="audio_menu_title">Audio Menu</string>
 </resources>

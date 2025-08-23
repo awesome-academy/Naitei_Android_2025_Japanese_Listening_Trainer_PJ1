@@ -20,8 +20,9 @@ class MockAudioRepository : AudioRepository {
         return audioDatabase.indexOf(audio)
     }
 
-    override suspend fun delete(audio: Audio) {
-        audioDatabase.remove(audio)
+    override suspend fun delete(audioId: Int) {
+        val index = audioDatabase.indexOfFirst { it.id == audioId }
+        audioDatabase.removeAt(index)
     }
 
     override suspend fun update(audio: Audio) {
@@ -41,5 +42,9 @@ class MockAudioRepository : AudioRepository {
             val audio = audioDatabase.find { it.id == id }
             emit(audio)
         }
+    }
+
+    override fun getFolderAudiosStream(folderId: Int): Flow<List<Audio>> {
+        TODO()
     }
 }

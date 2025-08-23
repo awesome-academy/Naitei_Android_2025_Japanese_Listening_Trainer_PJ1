@@ -63,7 +63,7 @@ class AudioNotificationManager(private val context: Context) {
         val largeIcon = BitmapFactory.decodeResource(context.resources, R.drawable.mint_green_folder_with_blossom)
 
         return NotificationCompat.Builder(context, AudioServiceConstants.NOTIFICATION_CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_headphones)
+            .setSmallIcon(R.drawable.cd)
             .setColorized(true)
             .setColor(md_theme_light_surfaceVariant.toArgb())
             .setContentTitle(audio.title)

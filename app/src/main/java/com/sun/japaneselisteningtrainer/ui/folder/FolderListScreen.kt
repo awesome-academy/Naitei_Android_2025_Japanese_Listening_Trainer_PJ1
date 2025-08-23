@@ -30,7 +30,6 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -59,8 +58,6 @@ import com.sun.japaneselisteningtrainer.ui.components.MenuItem
 import com.sun.japaneselisteningtrainer.ui.folder.create.CreateFolderDialog
 import com.sun.japaneselisteningtrainer.ui.folder.edit.EditFolderDialog
 import com.sun.japaneselisteningtrainer.ui.navigation.NavigationDestination
-import com.sun.japaneselisteningtrainer.ui.navigation.TrainerNavigationBarPreview
-import com.sun.japaneselisteningtrainer.ui.theme.JapaneseListeningTrainerTheme
 import kotlinx.coroutines.launch
 
 
@@ -74,7 +71,8 @@ object FolderListDestination : NavigationDestination {
 fun FolderListScreen(
     modifier: Modifier = Modifier,
     navigateBar: @Composable () -> Unit = {},
-    viewModel: FolderListViewModel = viewModel(factory = AppViewModelProvider.Factory)
+    viewModel: FolderListViewModel = viewModel(factory = AppViewModelProvider.Factory),
+    navigateToFolderAudioList: (Int) -> Unit,
 ) {
     val uiState = viewModel.folderListUiState
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
@@ -109,7 +107,7 @@ fun FolderListScreen(
             items(uiState.folderList, key = { it.id }) {
                 FolderItem(
                     folder = it,
-                    onClick = { },
+                    onClick = { navigateToFolderAudioList(it.id) },
                     onLongClick = {
                         viewModel.openFolderMenu(it)
                     },
@@ -259,12 +257,9 @@ fun FolderItem(
             ) {
                 Text(
                     text = folder.name,
-                    style = MaterialTheme.typography.displaySmall,
+                    style = MaterialTheme.typography.displayMedium,
                 )
-                Text(
-                    text = folder.description,
-                    style = MaterialTheme.typography.bodyLarge,
-                )
+                FolderShortDescription(description = folder.description)
             }
             Spacer(Modifier.width(16.dp))
             Box(
@@ -279,6 +274,20 @@ fun FolderItem(
         }
     }
 }
+
+@Composable
+fun FolderShortDescription(
+    modifier: Modifier = Modifier,
+    description: String = "",
+) {
+    if (description.isBlank()) return
+    Text(
+        modifier = modifier,
+        text = if (description.length > 30) "${description.take(30)}..." else description,
+        style = MaterialTheme.typography.bodyLarge,
+    )
+}
+
 
 @Preview
 @Composable

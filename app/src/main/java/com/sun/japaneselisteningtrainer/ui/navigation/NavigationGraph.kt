@@ -37,6 +37,11 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -47,6 +52,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.dialog
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.sun.japaneselisteningtrainer.ui.audio.entry.AudioEntryDestination
@@ -55,14 +61,17 @@ import com.sun.japaneselisteningtrainer.ui.audio.entry.AudioEditDestination
 import com.sun.japaneselisteningtrainer.ui.audio.entry.AudioEditScreen
 import com.sun.japaneselisteningtrainer.ui.audio.player.MusicPlayerDestination
 import com.sun.japaneselisteningtrainer.ui.audio.player.MusicPlayerScreen
+import com.sun.japaneselisteningtrainer.ui.components.AudioMenuDestination
+import com.sun.japaneselisteningtrainer.ui.components.AudioMenuDialog
 import com.sun.japaneselisteningtrainer.ui.folder.FolderListDestination
 import com.sun.japaneselisteningtrainer.ui.folder.FolderListScreen
+import com.sun.japaneselisteningtrainer.ui.folder.audiolists.FolderAudioListDestination
+import com.sun.japaneselisteningtrainer.ui.folder.audiolists.FolderAudioListScreen
 import com.sun.japaneselisteningtrainer.ui.home.HomeDestination
 import com.sun.japaneselisteningtrainer.ui.home.HomeScreen
 import com.sun.japaneselisteningtrainer.ui.navigation.NavItem.Add
+import com.sun.japaneselisteningtrainer.ui.navigation.NavItem.Companion.destinationRoutes
 import com.sun.japaneselisteningtrainer.ui.navigation.NavItem.Companion.items
-import com.sun.japaneselisteningtrainer.ui.navigation.NavItem.Folder
-import com.sun.japaneselisteningtrainer.ui.navigation.NavItem.Home
 import com.sun.japaneselisteningtrainer.ui.theme.JapaneseListeningTrainerTheme
 
 sealed class NavItem(
@@ -77,8 +86,10 @@ sealed class NavItem(
 
     companion object {
         val items by lazy { listOf(Home, Folder, Add, Search, Profile) }
+        val destinationRoutes by lazy { items.filter { it.des != null }.map { it.des?.route } }
     }
 }
+
 
 /**
  * Provides Navigation graph for the application.
@@ -100,12 +111,13 @@ fun TrainerNavHost(
                 },
                 navigationBar = {
                     TrainerNavigationBar(
-                        selectedItem = Home,
                         navController = navController
                     )
                 },
-                onNavigateToAudioPlayer = { audioId ->
-                    navController.navigate(MusicPlayerDestination.createRoute(audioId))
+                onAudioLongClick = { audioId ->
+                    navController.navigate(
+                        AudioMenuDestination.createRoute(audioId)
+                    )
                 }
             )
         }
@@ -124,8 +136,30 @@ fun TrainerNavHost(
             FolderListScreen(
                 navigateBar = {
                     TrainerNavigationBar(
-                        selectedItem = Folder,
                         navController = navController
+                    )
+                },
+                navigateToFolderAudioList = {
+                    navController.navigate("${FolderAudioListDestination.route}/$it")
+                }
+            )
+        }
+        composable(
+            route = FolderAudioListDestination.routeWithArgs,
+            arguments = listOf(navArgument(FolderAudioListDestination.folderIdArg) {
+                type = NavType.IntType
+            })
+        ) {
+            FolderAudioListScreen(
+                navigateBar = {
+                    TrainerNavigationBar(
+                        navController = navController,
+                    )
+                },
+                onNavigateUp = navController::navigateUp,
+                onAudioLongClick = { audioId ->
+                    navController.navigate(
+                        AudioMenuDestination.createRoute(audioId)
                     )
                 }
             )
@@ -159,12 +193,38 @@ fun TrainerNavHost(
                 onNavigationUp = { navController.navigateUp() }
             )
         }
+
+        dialog(
+            route = AudioMenuDestination.routeWithArgs,
+            arguments = listOf(navArgument(AudioMenuDestination.audioIdArg) {
+                type = NavType.IntType
+            })
+        ) {
+            AudioMenuDialog(
+                onEdit = {
+                    navController.navigate(AudioEditDestination.createRoute(it))
+                },
+                onDismiss = {
+                    navController.navigateUp()
+                }
+            )
+        }
     }
 }
 
 
 @Composable
-fun TrainerNavigationBar(selectedItem: NavItem, navController: NavHostController) {
+fun TrainerNavigationBar(navController: NavHostController) {
+    val navBackStackEntry = navController.currentBackStackEntry
+    var currentDes by remember { mutableStateOf(navBackStackEntry?.destination?.route!!) }
+
+    LaunchedEffect(navBackStackEntry) {
+        val des = navBackStackEntry?.destination?.route
+        if (des in destinationRoutes) {
+            currentDes = des.toString()
+        }
+    }
+
     Surface(
         color = MaterialTheme.colorScheme.surface,
         tonalElevation = 3.dp,
@@ -178,6 +238,7 @@ fun TrainerNavigationBar(selectedItem: NavItem, navController: NavHostController
             verticalAlignment = Alignment.CenterVertically
         ) {
             for (item in items) {
+                val selected = currentDes == item.des?.route
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center,
@@ -188,9 +249,9 @@ fun TrainerNavigationBar(selectedItem: NavItem, navController: NavHostController
                         onClick = {
                             item.des?.route?.let { navController.navigate(it) }
                         },
-                        isSelected = when (item) {
-                            Add -> true
-                            selectedItem -> true
+                        isSelected = when {
+                            item == Add -> true
+                            selected -> true
                             else -> false
                         }
                     )
@@ -233,7 +294,6 @@ fun TrainerNavigationBarPreview() {
     JapaneseListeningTrainerTheme {
         val navController = rememberNavController()
         TrainerNavigationBar(
-            selectedItem = Home,
             navController = navController,
         )
     }

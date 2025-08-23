@@ -26,11 +26,12 @@ import com.sun.japaneselisteningtrainer.ui.home.HomeViewModel
 import com.sun.japaneselisteningtrainer.TrainerApplication
 import com.sun.japaneselisteningtrainer.ui.audio.entry.AudioEntryViewModel
 import com.sun.japaneselisteningtrainer.ui.folder.FolderListViewModel
-import com.sun.japaneselisteningtrainer.ui.folder.components.FolderFormDialog.FolderFormViewModel
+import com.sun.japaneselisteningtrainer.ui.folder.audiolists.FolderAudioListViewModel
 import com.sun.japaneselisteningtrainer.ui.folder.components.FolderPickerViewModel
 import com.sun.japaneselisteningtrainer.ui.folder.create.CreateFolderViewModel
 import com.sun.japaneselisteningtrainer.ui.folder.edit.EditFolderViewModel
 import com.sun.japaneselisteningtrainer.ui.audio.player.MusicPlayerViewModel
+import com.sun.japaneselisteningtrainer.ui.components.AudioMenuDialogViewModel
 
 /**
  * Provides Factory to create instance of ViewModel for the entire Japanese Listening Trainer app
@@ -48,7 +49,7 @@ object AppViewModelProvider {
         // Initializer for AudioEntryViewModel
         initializer {
             AudioEntryViewModel(
-                trainerApplication().container.audioRepository
+                audioRepository = trainerApplication().container.audioRepository
             )
         }
 
@@ -67,12 +68,6 @@ object AppViewModelProvider {
         }
 
         initializer {
-            FolderFormViewModel(
-                folderRepository = trainerApplication().container.folderRepository
-            )
-        }
-
-        initializer {
             EditFolderViewModel(
                 folderRepository = trainerApplication().container.folderRepository
             )
@@ -84,11 +79,27 @@ object AppViewModelProvider {
             )
         }
 
+        initializer {
+            FolderAudioListViewModel (
+                savedStateHandle = this.createSavedStateHandle(),
+                folderRepository = trainerApplication().container.folderRepository,
+                audioRepository = trainerApplication().container.audioRepository,
+                audioServiceManager = trainerApplication().container.audioServiceManager
+            )
+        }
 
         // Initializer for MusicPlayerViewModel
         initializer {
             MusicPlayerViewModel(
                 audioServiceManager = trainerApplication().container.audioServiceManager,
+                audioRepository = trainerApplication().container.audioRepository
+            )
+        }
+
+        // Initializer for AudioMenuDialogViewModel
+        initializer {
+            AudioMenuDialogViewModel(
+                savedStateHandle = this.createSavedStateHandle(),
                 audioRepository = trainerApplication().container.audioRepository
             )
         }

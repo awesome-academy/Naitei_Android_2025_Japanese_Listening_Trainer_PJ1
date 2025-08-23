@@ -4,6 +4,7 @@ import android.content.Context
 import com.sun.japaneselisteningtrainer.data.folder.FolderRepository
 import com.sun.japaneselisteningtrainer.data.repository.mock.MockFolderRepository
 import com.sun.japaneselisteningtrainer.data.repository.AudioRepository
+import com.sun.japaneselisteningtrainer.data.repository.local.DbChangeNotifier
 import com.sun.japaneselisteningtrainer.data.repository.local.JLTDbHelper
 import com.sun.japaneselisteningtrainer.data.repository.local.LocalAudioRepository
 import com.sun.japaneselisteningtrainer.data.repository.local.LocalFolderRepository
@@ -37,13 +38,14 @@ class MockAppDataContainer(private val context: Context) : AppContainer {
 class AppDataContainer(private val context: Context) : AppContainer {
     private val dbHelper = JLTDbHelper(context)
     private val audioFileStorage: AudioFileStorage = ExternalAudioFileStorage(context)
+    private val notifier = DbChangeNotifier()
 
     override val audioRepository: AudioRepository by lazy {
-        LocalAudioRepository(dbHelper, audioFileStorage)
+        LocalAudioRepository(dbHelper, audioFileStorage, notifier)
     }
 
     override val folderRepository: FolderRepository by lazy {
-        LocalFolderRepository(dbHelper)
+        LocalFolderRepository(dbHelper, notifier)
     }
     
     override val audioServiceManager: AudioServiceManager by lazy {
