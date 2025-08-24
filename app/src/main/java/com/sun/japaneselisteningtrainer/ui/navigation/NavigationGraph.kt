@@ -100,7 +100,6 @@ fun TrainerNavHost(
     navController: NavHostController,
     modifier: Modifier = Modifier
 ) {
-    // ViewModel sử dụng AppViewModelProvider.Factory
     val miniAudioPlayerViewModel: MiniAudioPlayerViewModel =
         androidx.lifecycle.viewmodel.compose.viewModel(factory = AppViewModelProvider.Factory)
 
@@ -109,7 +108,6 @@ fun TrainerNavHost(
         startDestination = HomeDestination.route,
         modifier = modifier
     ) {
-        // Home Screen
         composable(route = HomeDestination.route) {
             HomeScreen(
                 navigateToMusicPlayer = { audioId ->
@@ -127,7 +125,6 @@ fun TrainerNavHost(
             )
         }
 
-        // Audio Entry Screen
         composable(route = AudioEntryDestination.route) {
             AudioEntryScreen(
                 navigateBack = { navController.popBackStack() },
@@ -135,7 +132,6 @@ fun TrainerNavHost(
             )
         }
 
-        // Folder List Screen
         composable(route = FolderListDestination.route) {
             FolderListScreen(
                 navigateBar = {
@@ -150,7 +146,6 @@ fun TrainerNavHost(
             )
         }
 
-        // Folder Audio List Screen
         composable(
             route = FolderAudioListDestination.routeWithArgs,
             arguments = listOf(navArgument(FolderAudioListDestination.folderIdArg) {
@@ -171,7 +166,6 @@ fun TrainerNavHost(
             )
         }
 
-        // Music Player Screen
         composable(
             route = MusicPlayerDestination.routeWithArgs,
             arguments = listOf(navArgument(MusicPlayerDestination.audioIdArg) {
@@ -187,7 +181,6 @@ fun TrainerNavHost(
             )
         }
 
-        // Audio Edit Screen
         composable(
             route = AudioEditDestination.routeWithArgs,
             arguments = listOf(navArgument(AudioEditDestination.audioIdArg) {
@@ -202,7 +195,6 @@ fun TrainerNavHost(
             )
         }
 
-        // Audio Menu Dialog
         dialog(
             route = AudioMenuDestination.routeWithArgs,
             arguments = listOf(navArgument(AudioMenuDestination.audioIdArg) {
@@ -241,7 +233,6 @@ fun TrainerNavigationBar(
         modifier = Modifier.navigationBarsPadding()
     ) {
         Column {
-            // Mini Audio Player
             uiState.currentAudio?.let { audio ->
                 MiniAudioPlayer(
                     audioTitle = audio.title,
@@ -253,7 +244,6 @@ fun TrainerNavigationBar(
                     onFavorite = { miniAudioPlayerViewModel.toggleFavorite(audio.id) }
                 )
             }
-            // Row Navigation Items
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -285,8 +275,7 @@ fun TrainerNavigationBarItem(
         modifier = modifier
             .size(48.dp)
             .background(
-                color = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
-                else Color.Transparent,
+                color = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.2f) else Color.Transparent,
                 shape = CircleShape
             ),
         contentAlignment = Alignment.Center
