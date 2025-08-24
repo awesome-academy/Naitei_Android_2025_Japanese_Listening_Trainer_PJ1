@@ -116,7 +116,10 @@ fun TrainerNavHost(
                 navigationBar = {
                     TrainerNavigationBar(
                         navController = navController,
-                        miniAudioPlayerViewModel = miniAudioPlayerViewModel
+                        miniAudioPlayerViewModel = miniAudioPlayerViewModel,
+                        navigateToMusicPlayer = { audioId ->
+                            navController.navigate(MusicPlayerDestination.createRoute(audioId))
+                        }
                     )
                 },
                 onAudioLongClick = { audioId ->
@@ -124,20 +127,21 @@ fun TrainerNavHost(
                 }
             )
         }
-
         composable(route = AudioEntryDestination.route) {
             AudioEntryScreen(
                 navigateBack = { navController.popBackStack() },
                 onNavigationUp = { navController.navigateUp() }
             )
         }
-
         composable(route = FolderListDestination.route) {
             FolderListScreen(
                 navigateBar = {
                     TrainerNavigationBar(
                         navController = navController,
-                        miniAudioPlayerViewModel = miniAudioPlayerViewModel
+                        miniAudioPlayerViewModel = miniAudioPlayerViewModel,
+                        navigateToMusicPlayer = { audioId ->
+                            navController.navigate(MusicPlayerDestination.createRoute(audioId))
+                        }
                     )
                 },
                 navigateToFolderAudioList = { folderId ->
@@ -145,7 +149,6 @@ fun TrainerNavHost(
                 }
             )
         }
-
         composable(
             route = FolderAudioListDestination.routeWithArgs,
             arguments = listOf(navArgument(FolderAudioListDestination.folderIdArg) {
@@ -156,7 +159,10 @@ fun TrainerNavHost(
                 navigateBar = {
                     TrainerNavigationBar(
                         navController = navController,
-                        miniAudioPlayerViewModel = miniAudioPlayerViewModel
+                        miniAudioPlayerViewModel = miniAudioPlayerViewModel,
+                        navigateToMusicPlayer = { audioId ->
+                            navController.navigate(MusicPlayerDestination.createRoute(audioId))
+                        }
                     )
                 },
                 onNavigateUp = navController::navigateUp,
@@ -165,7 +171,6 @@ fun TrainerNavHost(
                 }
             )
         }
-
         composable(
             route = MusicPlayerDestination.routeWithArgs,
             arguments = listOf(navArgument(MusicPlayerDestination.audioIdArg) {
@@ -180,7 +185,6 @@ fun TrainerNavHost(
                 onEditAudio = { navController.navigate(AudioEditDestination.createRoute(audioId)) }
             )
         }
-
         composable(
             route = AudioEditDestination.routeWithArgs,
             arguments = listOf(navArgument(AudioEditDestination.audioIdArg) {
@@ -194,7 +198,6 @@ fun TrainerNavHost(
                 onNavigationUp = { navController.navigateUp() }
             )
         }
-
         dialog(
             route = AudioMenuDestination.routeWithArgs,
             arguments = listOf(navArgument(AudioMenuDestination.audioIdArg) {
@@ -215,7 +218,8 @@ fun TrainerNavHost(
 @Composable
 fun TrainerNavigationBar(
     navController: NavHostController,
-    miniAudioPlayerViewModel: MiniAudioPlayerViewModel
+    miniAudioPlayerViewModel: MiniAudioPlayerViewModel,
+    navigateToMusicPlayer: (Int) -> Unit
 ) {
     val navBackStackEntry = navController.currentBackStackEntry
     var currentDes by remember { mutableStateOf(navBackStackEntry?.destination?.route ?: "") }
@@ -241,7 +245,8 @@ fun TrainerNavigationBar(
                     onPlayPause = { miniAudioPlayerViewModel.pauseAudio() },
                     onPrevious = { miniAudioPlayerViewModel.playPrevious() },
                     onNext = { miniAudioPlayerViewModel.playNext() },
-                    onFavorite = { miniAudioPlayerViewModel.toggleFavorite(audio.id) }
+                    onFavorite = { miniAudioPlayerViewModel.toggleFavorite(audio.id) },
+                    onClickPlayer = { navigateToMusicPlayer(audio.id) }
                 )
             }
             Row(
