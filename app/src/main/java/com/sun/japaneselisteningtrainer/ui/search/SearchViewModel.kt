@@ -29,7 +29,6 @@ data class SearchUiState(
 
 class SearchViewModel(
     private val audioRepository: AudioRepository,
-    private val folderRepository: FolderRepository,
     private val audioServiceManager: AudioServiceManager
 ) : ViewModel() {
 

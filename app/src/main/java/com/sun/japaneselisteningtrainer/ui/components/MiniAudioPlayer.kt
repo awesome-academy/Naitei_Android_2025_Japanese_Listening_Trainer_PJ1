@@ -1,6 +1,7 @@
 package com.sun.japaneselisteningtrainer.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -54,7 +55,8 @@ fun MiniAudioPlayer(
             Text(
                 text = audio.title,
                 color = Color.Black,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f).basicMarquee(),
+                maxLines = 1
             )
 
             IconButton(onClick = viewModel::playPrevious ) {
