@@ -320,13 +320,9 @@ fun LyricView(
     audio: Audio,
     modifier: Modifier = Modifier
 ) {
-    // Split script thành lines
-    val scriptLines = remember(audio.script) {
-        audio.script.split("\n").filter { it.isNotBlank() }
-    }
-
     LyricsBox(
         lines = audio.script,
+        translateText = audio.translate,
         modifier = modifier
     )
 }

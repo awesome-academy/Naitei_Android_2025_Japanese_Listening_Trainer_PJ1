@@ -10,8 +10,14 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDirection
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.sun.japaneselisteningtrainer.R
 import com.sun.japaneselisteningtrainer.data.model.Folder
@@ -70,10 +76,16 @@ fun FolderInputForm(
     val isDescriptionOverLimit = uiState.description.length > DESCRIPTION_MAX_LENGTH
     val isTitleOverLimit = uiState.title.length > TITLE_MAX_LENGTH
     val isTitleFieldError = uiState.doesTitleExist || isTitleOverLimit
+    // Force LTR layout direction inside the dialog inputs only
+    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
     Column {
         OutlinedTextField(
             value = uiState.title,
-            onValueChange = { onValueChange(uiState.copy(title = it)) },
+            onValueChange = { newValue ->
+                // Force LTR text by removing RTL marks
+                val cleanedValue = newValue.replace("\u202E", "").replace("\u202D", "")
+                onValueChange(uiState.copy(title = cleanedValue))
+            },
             label = {
                 when {
                     isTitleOverLimit -> {
@@ -88,21 +100,34 @@ fun FolderInputForm(
             },
             singleLine = true,
             isError = isTitleFieldError,
+            textStyle = TextStyle(
+                textDirection = TextDirection.Ltr,
+                textAlign = TextAlign.Start
+            ),
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(8.dp))
         OutlinedTextField(
             value = uiState.description,
-            onValueChange = { onValueChange(uiState.copy(description = it)) },
+            onValueChange = { newValue ->
+                // Force LTR text by removing RTL marks
+                val cleanedValue = newValue.replace("\u202E", "").replace("\u202D", "")
+                onValueChange(uiState.copy(description = cleanedValue))
+            },
             label = {
                 if (isDescriptionOverLimit) {
                     Text(stringResource(R.string.max_chars, DESCRIPTION_MAX_LENGTH))
                 } else Text (stringResource(R.string.description))
             },
             placeholder = { Text(stringResource(R.string.description_placeholder)) },
+            textStyle = TextStyle(
+                textDirection = TextDirection.Ltr,
+                textAlign = TextAlign.Start
+            ),
             modifier = Modifier.fillMaxWidth(),
             isError = isDescriptionOverLimit,
         )
+    }
     }
 }
 
