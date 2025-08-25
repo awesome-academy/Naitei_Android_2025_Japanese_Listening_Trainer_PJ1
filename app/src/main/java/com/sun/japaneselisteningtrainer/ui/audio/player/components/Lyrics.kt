@@ -15,7 +15,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.input.pointer.pointerInput
@@ -29,36 +32,67 @@ import androidx.compose.ui.unit.sp
 import com.sun.japaneselisteningtrainer.R
 import kotlin.math.abs
 
+
 /* ---------- 2) LyricsBox: container dùng surfaceVariant theo theme ---------- */
 @Composable
 fun LyricsBox(
     lines: String,
+    translateText: String = "",
     modifier: Modifier = Modifier
 ) {
+    var showJapanese by remember { mutableStateOf(true) }
+    
     Surface(
         color = MaterialTheme.colorScheme.surfaceVariant,
         contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
         shape = MaterialTheme.shapes.medium,
         tonalElevation = 0.dp,
         shadowElevation = 0.dp,
-        modifier = modifier
+        modifier = modifier.pointerInput(Unit) {
+            val thresholdPx = 100f
+            var totalDx = 0f
+            var swipeTriggered = false
+            
+            detectHorizontalDragGestures(
+                onDragStart = {
+                    totalDx = 0f
+                    swipeTriggered = false
+                },
+                onHorizontalDrag = { _, dragAmount ->
+                    if (!swipeTriggered && translateText.isNotBlank()) {
+                        totalDx += dragAmount
+                        if (abs(totalDx) >= thresholdPx) {
+                            swipeTriggered = true
+                            showJapanese = !showJapanese
+                        }
+                    }
+                }
+            )
+        }
     ) {
+        // Xác định text hiển thị dựa trên trạng thái
+        val currentText = if (showJapanese || translateText.isBlank()) lines else translateText
+        
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 14.dp, vertical = 12.dp)
                 .verticalScroll(rememberScrollState()),
-            verticalArrangement = if (lines.isBlank()) Arrangement.Center else Arrangement.Top
+            verticalArrangement = if (currentText.isBlank()) Arrangement.Center else Arrangement.Top
         ) {
-            if (lines.isBlank()) Text(
-                text = stringResource(R.string.please_add_transcript),
-                style = MaterialTheme.typography.displayMedium
-            ) else SelectionContainer {
+            if (currentText.isBlank()) {
                 Text(
-                    text = lines,
-                    modifier = Modifier.fillMaxWidth(),
-                    style = MaterialTheme.typography.displaySmall
+                    text = stringResource(R.string.please_add_transcript),
+                    style = MaterialTheme.typography.displayMedium
                 )
+            } else {
+                SelectionContainer {
+                    Text(
+                        text = currentText,
+                        modifier = Modifier.fillMaxWidth(),
+                        style = MaterialTheme.typography.displaySmall
+                    )
+                }
             }
         }
     }
