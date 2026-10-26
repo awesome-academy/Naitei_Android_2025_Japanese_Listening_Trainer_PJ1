@@ -82,7 +82,7 @@ class AudioService : Service(), AudioPlayer.AudioPlayerCallback {
     private val lastedAudioIdStack = ArrayDeque<Int>()
 
     // Playlist management
-    private var _playlistId = MutableStateFlow<Int?>(null)
+    private val _playlistId = MutableStateFlow<Int?>(null)
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private var playlist: StateFlow<List<Audio>> = _playlistId.flatMapLatest { id ->
