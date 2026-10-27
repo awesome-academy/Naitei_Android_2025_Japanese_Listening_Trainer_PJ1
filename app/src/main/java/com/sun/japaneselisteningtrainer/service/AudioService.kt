@@ -207,7 +207,14 @@ class AudioService : Service(), AudioPlayer.AudioPlayerCallback {
     fun playAudio(audioId: Int, withFolder: Boolean = false) {
         _currentAudioId.value = audioId
         if (withFolder) {
-            _playlistId.value = audioId
+            serviceScope.launch {
+                val playlistId = audioRepository.getAudioStream(audioId).first()?.folderId
+                if (playlistId != null) {
+                    _playlistId.value = playlistId
+                }
+            }
+        } else {
+            _playlistId.update { null }
         }
     }
 
