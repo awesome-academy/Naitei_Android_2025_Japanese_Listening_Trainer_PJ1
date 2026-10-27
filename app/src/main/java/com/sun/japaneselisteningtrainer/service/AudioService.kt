@@ -86,16 +86,16 @@ class AudioService : Service(), AudioPlayer.AudioPlayerCallback {
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private var playlist: StateFlow<List<Audio>> = _playlistId.flatMapLatest { id ->
-            if (id != null) {
-                audioRepository.getFolderAudiosStream(id)
-            } else {
-                audioRepository.getAllAudioStream()
-            }
-        }.stateIn(
-            scope = serviceScope,
-            started = kotlinx.coroutines.flow.SharingStarted.Eagerly,
-            initialValue = emptyList()
-        )
+        if (id == null) {
+            audioRepository.getAllAudioStream()
+        } else {
+            audioRepository.getFolderAudiosStream(id)
+        }
+    }.stateIn(
+        scope = serviceScope,
+        started = kotlinx.coroutines.flow.SharingStarted.Eagerly,
+        initialValue = emptyList()
+    )
 
     private var isShuffleEnabled = false
 
